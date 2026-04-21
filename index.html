@@ -4,9 +4,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Trilux Trainer</title>
 
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0b6623">
-
 <style>
 body {
   margin: 0;
@@ -28,7 +25,7 @@ body {
 }
 
 .face { background: white; color: black; }
-.back { background: navy; }
+.back { background: navy; color: navy; }
 
 .top-row { margin-top: 40px; }
 
@@ -45,7 +42,7 @@ body {
 }
 
 button {
-  font-size: 15px;
+  font-size: 14px;
   margin: 3px;
   padding: 8px;
   border-radius: 8px;
@@ -97,6 +94,7 @@ let cards = [];
 let score = 0;
 let rounds = 0;
 let startTime = 0;
+let acceptingInput = false;
 
 function randomCard() {
   return ranks[Math.floor(Math.random()*ranks.length)] +
@@ -130,34 +128,62 @@ function evaluate(c) {
   return "No Bonus";
 }
 
-function newRound() {
-  cards = [randomCard(), randomCard(), randomCard()];
+function hideTop() {
+  document.getElementById("top1").innerText = "";
+  document.getElementById("top2").innerText = "";
+  document.getElementById("top1").className = "card back";
+  document.getElementById("top2").className = "card back";
+}
 
-  document.getElementById("bottomCard").innerText = cards[0];
-
-  document.getElementById("top1").className = "card face";
-  document.getElementById("top2").className = "card face";
-
+function showTop() {
   document.getElementById("top1").innerText = cards[1];
   document.getElementById("top2").innerText = cards[2];
+  document.getElementById("top1").className = "card face";
+  document.getElementById("top2").className = "card face";
+}
+
+function newRound() {
+  acceptingInput = false;
+
+  cards = [randomCard(), randomCard(), randomCard()];
+  document.getElementById("bottomCard").innerText = cards[0];
+
+  hideTop();
+  document.getElementById("result").innerText = "";
+
+  // ⏱ 2–5 sec random delay BEFORE flash
+  let preDelay = 2000 + Math.random() * 3000;
 
   setTimeout(() => {
-    document.getElementById("top1").className = "card back";
-    document.getElementById("top2").className = "card back";
-  }, 800);
 
-  document.getElementById("result").innerText = "";
-  startTime = Date.now();
+    showTop();
+    startTime = Date.now();
+    acceptingInput = true;
+
+    // ⚡ random flash duration (200–900ms)
+    let flash = 200 + Math.random() * 700;
+
+    setTimeout(() => {
+      hideTop();
+    }, flash);
+
+  }, preDelay);
 }
 
 function guess(g) {
+  if (!acceptingInput) return;
+
+  acceptingInput = false;
+
   let correct = evaluate(cards);
   let time = ((Date.now() - startTime)/1000).toFixed(2);
 
   rounds++;
   if (g === correct) score++;
 
-  document.getElementById("score").innerText = `Score: ${score} / ${rounds}`;
+  document.getElementById("score").innerText =
+    `Score: ${score} / ${rounds}`;
+
   document.getElementById("result").innerText =
     `Answer: ${correct} | Time: ${time}s`;
 
@@ -165,11 +191,6 @@ function guess(g) {
 }
 
 newRound();
-
-// Register service worker
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js');
-}
 </script>
 
 </body>
