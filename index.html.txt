@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trilux Trainer</title>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0b6623">
+
+<style>
+body {
+  margin: 0;
+  background: #0b6623;
+  color: white;
+  font-family: Arial;
+  text-align: center;
+}
+
+.card {
+  width: 70px;
+  height: 100px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  margin: 5px;
+}
+
+.face { background: white; color: black; }
+.back { background: navy; }
+
+.top-row { margin-top: 40px; }
+
+.bottom {
+  position: fixed;
+  bottom: 140px;
+  width: 100%;
+}
+
+.buttons {
+  position: fixed;
+  bottom: 10px;
+  width: 100%;
+}
+
+button {
+  font-size: 15px;
+  margin: 3px;
+  padding: 8px;
+  border-radius: 8px;
+  border: none;
+}
+
+.none-btn {
+  background: #444;
+  color: white;
+}
+
+.result {
+  margin-top: 20px;
+  font-size: 18px;
+}
+</style>
+</head>
+
+<body>
+
+<h2>Trilux Trainer</h2>
+<div id="score">Score: 0 / 0</div>
+
+<div class="top-row">
+  <div id="top1" class="card back"></div>
+  <div id="top2" class="card back"></div>
+</div>
+
+<div class="bottom">
+  <div id="bottomCard" class="card face"></div>
+</div>
+
+<div class="buttons">
+  <button onclick="guess('Pair')">Pair</button>
+  <button onclick="guess('Three of a Kind')">3 Kind</button>
+  <button onclick="guess('Flush')">Flush</button>
+  <button onclick="guess('Straight')">Straight</button>
+  <button onclick="guess('Straight Flush')">Str Flush</button>
+  <button class="none-btn" onclick="guess('No Bonus')">No Bonus</button>
+</div>
+
+<div class="result" id="result"></div>
+
+<script>
+const ranks = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
+const suits = ['♠','♥','♦','♣'];
+
+let cards = [];
+let score = 0;
+let rounds = 0;
+let startTime = 0;
+
+function randomCard() {
+  return ranks[Math.floor(Math.random()*ranks.length)] +
+         suits[Math.floor(Math.random()*suits.length)];
+}
+
+function value(r) {
+  return ranks.indexOf(r) + 2;
+}
+
+function evaluate(c) {
+  let vals = c.map(x => value(x.slice(0,-1))).sort((a,b)=>a-b);
+  let suitsOnly = c.map(x => x.slice(-1));
+
+  let counts = {};
+  vals.forEach(v => counts[v] = (counts[v] || 0) + 1);
+
+  let isThreeKind = Object.values(counts).includes(3);
+  let isPair = Object.values(counts).includes(2);
+  let isFlush = new Set(suitsOnly).size === 1;
+
+  let isStraight =
+    (vals[2]-vals[0]===2 && new Set(vals).size===3) ||
+    (vals.includes(14)&&vals.includes(2)&&vals.includes(3));
+
+  if (isStraight && isFlush) return "Straight Flush";
+  if (isThreeKind) return "Three of a Kind";
+  if (isFlush) return "Flush";
+  if (isStraight) return "Straight";
+  if (isPair) return "Pair";
+  return "No Bonus";
+}
+
+function newRound() {
+  cards = [randomCard(), randomCard(), randomCard()];
+
+  document.getElementById("bottomCard").innerText = cards[0];
+
+  document.getElementById("top1").className = "card face";
+  document.getElementById("top2").className = "card face";
+
+  document.getElementById("top1").innerText = cards[1];
+  document.getElementById("top2").innerText = cards[2];
+
+  setTimeout(() => {
+    document.getElementById("top1").className = "card back";
+    document.getElementById("top2").className = "card back";
+  }, 800);
+
+  document.getElementById("result").innerText = "";
+  startTime = Date.now();
+}
+
+function guess(g) {
+  let correct = evaluate(cards);
+  let time = ((Date.now() - startTime)/1000).toFixed(2);
+
+  rounds++;
+  if (g === correct) score++;
+
+  document.getElementById("score").innerText = `Score: ${score} / ${rounds}`;
+  document.getElementById("result").innerText =
+    `Answer: ${correct} | Time: ${time}s`;
+
+  setTimeout(newRound, 1200);
+}
+
+newRound();
+
+// Register service worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js');
+}
+</script>
+
+</body>
+</html>
