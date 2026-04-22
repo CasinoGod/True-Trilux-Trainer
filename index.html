@@ -65,7 +65,6 @@
       cursor: pointer;
     }
 
-    /* Top buttons on collapsed/expanded art */
     #hitPitch {
       left: 9%;
       top: 58%;
@@ -80,7 +79,6 @@
       height: 19%;
     }
 
-    /* Expanded-only difficulty buttons */
     .expanded-only {
       display: none;
     }
@@ -228,7 +226,7 @@
   <!-- HOME -->
   <div id="home" class="screen active">
     <div id="menuWrapper">
-      <img id="menuArt" src="menu_collapsed.PNG" alt="Trilux menu">
+      <img id="menuArt" src="./menu_collapsed.PNG" alt="Trilux menu">
 
       <button id="hitPitch" class="menu-hitbox" onclick="togglePitchMenu()" aria-label="Pitch"></button>
       <button id="hitStandard" class="menu-hitbox" onclick="startGame('recognition')" aria-label="Standard Blackjack"></button>
@@ -265,12 +263,10 @@
   </div>
 
   <script>
-    /* ---------- STATE ---------- */
     let gameState = "HOME";
     let mode = "";
     let pitchExpanded = false;
 
-    /* ---------- GAME DATA ---------- */
     const ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
     const suits = ['♠', '♥', '♦', '♣'];
 
@@ -279,14 +275,12 @@
     let rounds = 0;
     let decisionMade = false;
 
-    /* ---------- TIMERS ---------- */
     let viewTimerInterval = null;
     let viewStartTime = 0;
     let revealTimeout = null;
     let hideTimeout = null;
     let roundResetTimeout = null;
 
-    /* ---------- DOM ---------- */
     const homeEl = document.getElementById("home");
     const gameEl = document.getElementById("game");
     const menuWrapperEl = document.getElementById("menuWrapper");
@@ -301,19 +295,17 @@
     const top2El = document.getElementById("top2");
     const bottomCardEl = document.getElementById("bottomCard");
 
-    /* ---------- STATE CONTROL ---------- */
     function setState(nextState) {
       gameState = nextState;
     }
 
-    /* ---------- HOME MENU ---------- */
     function setMenuArt() {
       if (pitchExpanded) {
         menuWrapperEl.classList.add("expanded");
-        menuArtEl.src = "menu_expanded.PNG";
+        menuArtEl.src = "./menu_expanded.PNG";
       } else {
         menuWrapperEl.classList.remove("expanded");
-        menuArtEl.src = "menu_collapsed.PNG";
+        menuArtEl.src = "./menu_collapsed.PNG";
       }
     }
 
@@ -337,7 +329,6 @@
       gameEl.classList.add("active");
     }
 
-    /* ---------- CARD HELPERS ---------- */
     function createDeck() {
       const deck = [];
       for (const rank of ranks) {
@@ -369,7 +360,6 @@
       return ranks.indexOf(rank) + 2;
     }
 
-    /* ---------- TRILUX EVALUATION ---------- */
     function evaluateTrilux(hand) {
       const vals = hand.map(c => value(rankText(c))).sort((a, b) => a - b);
       const suitsOnly = hand.map(c => suitText(c));
@@ -413,7 +403,6 @@
       }
     }
 
-    /* ---------- RECOGNITION EVALUATION ---------- */
     function matchDealerTypeForHand(hand) {
       const dealerCard = hand[0];
       const playerCards = [hand[1], hand[2]];
@@ -440,14 +429,13 @@
       ) {
         return result;
       }
-      return null; // pair excluded from Standard Blackjack mode
+      return null;
     }
 
     function getRecognitionOutcome(hand) {
       const matchDetail = matchDealerTypeForHand(hand);
       const triluxDetail = getRecognitionTriluxDetail(hand);
 
-      // prevent mixed-hit ambiguity
       if (matchDetail !== "No Match" && triluxDetail !== null) {
         return null;
       }
@@ -473,9 +461,8 @@
       }
     }
 
-    /* ---------- TIMING ---------- */
     function getDelay() {
-      return 1000 + Math.random() * 500; // 1.0–1.5s pre-reveal
+      return 1000 + Math.random() * 500;
     }
 
     function getViewTime() {
@@ -484,13 +471,12 @@
       if (mode === "easy") return 0;
       if (mode === "normal") return 3000 + Math.random() * 3000;
       if (mode === "casino") return base * 1.4;
-      if (mode === "extreme") return 1000 + Math.random() * 1100; // 1.0–2.1s
-      if (mode === "recognition") return 0; // stays up until decision
+      if (mode === "extreme") return 1000 + Math.random() * 1100;
+      if (mode === "recognition") return 0;
 
       return base;
     }
 
-    /* ---------- TIMER ---------- */
     function startViewTimer() {
       stopViewTimer();
       viewStartTime = Date.now();
@@ -509,7 +495,6 @@
       }
     }
 
-    /* ---------- UI ---------- */
     function updateScore() {
       scoreEl.innerText = `Score: ${score} / ${rounds}`;
     }
@@ -529,7 +514,6 @@
       `;
     }
 
-    /* ---------- ROUND CLEANUP ---------- */
     function clearRoundTimers() {
       if (revealTimeout) {
         clearTimeout(revealTimeout);
@@ -546,7 +530,6 @@
       stopViewTimer();
     }
 
-    /* ---------- GAME FLOW ---------- */
     function startGame(selectedMode) {
       mode = selectedMode;
       decisionMade = false;
@@ -569,7 +552,7 @@
         cards = generateStandardHand();
       }
 
-      bottomCardEl.innerText = cards[0]; // dealer/up card
+      bottomCardEl.innerText = cards[0];
 
       top1El.className = "card back";
       top2El.className = "card back";
@@ -592,7 +575,6 @@
       }, getDelay());
     }
 
-    /* ---------- CARD DISPLAY ---------- */
     function revealCards() {
       top1El.className = "card face";
       top2El.className = "card face";
@@ -623,7 +605,6 @@
       }, 1000);
     }
 
-    /* ---------- STANDARD MODES ---------- */
     function guessStandard(answer) {
       if (mode === "recognition") return;
       if (gameState !== "WAITING_INPUT" || decisionMade) return;
@@ -632,7 +613,6 @@
       finalizeRound(answer === correct);
     }
 
-    /* ---------- OVERLAY ---------- */
     function showOverlay(title, options, callback) {
       setState("OVERLAY");
       overlayTitleEl.innerText = title;
@@ -651,7 +631,6 @@
       overlayEl.style.display = "flex";
     }
 
-    /* ---------- STANDARD BLACKJACK ---------- */
     function startRecognition() {
       if (mode !== "recognition") return;
       if (gameState !== "WAITING_INPUT" || decisionMade) return;
@@ -698,7 +677,6 @@
       finalizeRound(isCorrectCategory && isCorrectDetail);
     }
 
-    /* ---------- INIT ---------- */
     window.onload = () => {
       showHome();
       updateScore();
