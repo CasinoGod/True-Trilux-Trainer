@@ -14,8 +14,8 @@ body {
 }
 
 /* ---------- SCREEN SYSTEM ---------- */
-.screen { display: none; }
-.active { display: block; }
+.screen { display:none; }
+.active { display:block; }
 
 /* ---------- CARDS ---------- */
 .card {
@@ -34,7 +34,7 @@ body {
   color: black;
 }
 
-/* 🎴 checkered back (mobile safe) */
+/* checkered back */
 .back {
   background: repeating-linear-gradient(
     45deg,
@@ -48,6 +48,12 @@ body {
 
 /* ---------- LAYOUT ---------- */
 .top-row { margin-top: 25px; }
+
+#viewTimer {
+  font-size: 22px;
+  margin-top: 10px;
+  min-height: 30px;
+}
 
 .bottom {
   position: fixed;
@@ -118,6 +124,9 @@ button {
   <div id="top2" class="card back"></div>
 </div>
 
+<!-- ⏱ TIMER BETWEEN DEALER & PLAYER -->
+<div id="viewTimer"></div>
+
 <div class="bottom">
   <div id="bottomCard" class="card face"></div>
 </div>
@@ -143,7 +152,11 @@ let rounds = 0;
 let mode = "";
 let accepting = false;
 
-/* ---------------- CARDS ---------------- */
+let revealTimer;
+let hideTimer;
+let viewTimerInterval;
+
+/* ---------- CARDS ---------- */
 function randomCard() {
   return ranks[Math.floor(Math.random()*ranks.length)] +
          suits[Math.floor(Math.random()*suits.length)];
@@ -153,7 +166,7 @@ function value(r) {
   return ranks.indexOf(r) + 2;
 }
 
-/* ---------------- TRILUX ENGINE ---------------- */
+/* ---------- TRILUX ENGINE ---------- */
 function evaluateTrilux(c) {
   let vals = c.map(x => value(x.slice(0,-1))).sort((a,b)=>a-b);
   let suitsOnly = c.map(x => x.slice(-1));
@@ -177,7 +190,7 @@ function evaluateTrilux(c) {
   return "No Bonus";
 }
 
-/* ---------------- DEALER MATCH ---------------- */
+/* ---------- MATCH SYSTEM ---------- */
 function matchDealerType() {
   let matches = cards.filter(c => c[0] === dealer[0]);
   let suited = cards.filter(c => c === dealer);
@@ -190,20 +203,33 @@ function matchDealerType() {
   return "No Match";
 }
 
-/* ---------------- TIMING SYSTEM ---------------- */
+/* ---------- TIMING ---------- */
 function getDelay() {
   if (mode === "easy") return 400;
-
-  if (mode === "normal")
-    return 3000 + Math.random() * 3000;
-
-  if (mode === "casino")
-    return (1500 + Math.random() * 2500) * 1.5;
-
-  return 1500 + Math.random() * 2500; // extreme
+  if (mode === "normal") return 3000 + Math.random() * 3000;
+  if (mode === "casino") return (1500 + Math.random() * 2500) * 1.5;
+  return 1500 + Math.random() * 2500;
 }
 
-/* ---------------- GAME START ---------------- */
+/* ---------- TIMER ---------- */
+function startViewTimer(seconds) {
+  clearInterval(viewTimerInterval);
+
+  let t = seconds;
+  document.getElementById("viewTimer").innerText = t;
+
+  viewTimerInterval = setInterval(() => {
+    t--;
+    if (t <= 0) {
+      clearInterval(viewTimerInterval);
+      document.getElementById("viewTimer").innerText = "";
+    } else {
+      document.getElementById("viewTimer").innerText = t;
+    }
+  }, 1000);
+}
+
+/* ---------- START GAME ---------- */
 function startGame(m) {
   mode = m;
 
@@ -214,7 +240,7 @@ function startGame(m) {
   newRound();
 }
 
-/* ---------------- BUTTONS ---------------- */
+/* ---------- BUTTONS ---------- */
 function buildButtons() {
   let html = "";
 
@@ -226,15 +252,21 @@ function buildButtons() {
       <button onclick="guess('Three of a Kind')">3 Kind</button>
       <button onclick="guess('Flush')">Flush</button>
       <button onclick="guess('Straight')">Straight</button>
+      <button onclick="guess('Pair')">Pair</button>
     `;
   }
 
   document.getElementById("buttons").innerHTML = html;
 }
 
-/* ---------------- ROUND ---------------- */
+/* ---------- ROUND ---------- */
 function newRound() {
   accepting = false;
+
+  clearTimeout(revealTimer);
+  clearTimeout(hideTimer);
+  clearInterval(viewTimerInterval);
+  document.getElementById("viewTimer").innerText = "";
 
   cards = [randomCard(), randomCard(), randomCard()];
   dealer = cards[1];
@@ -243,26 +275,33 @@ function newRound() {
 
   document.getElementById("top1").className = "card back";
   document.getElementById("top2").className = "card back";
-
   document.getElementById("top1").innerText = "";
   document.getElementById("top2").innerText = "";
 
   let delay = getDelay();
 
-  setTimeout(() => {
+  revealTimer = setTimeout(() => {
     revealCards();
     accepting = true;
 
+    let t = 3;
+    if (mode === "easy") t = 2;
+    if (mode === "normal") t = 4 + Math.floor(Math.random() * 3);
+    if (mode === "casino") t = Math.round((2 + Math.random() * 3) * 1.5);
+    if (mode === "extreme") t = 2 + Math.floor(Math.random() * 2);
+
+    startViewTimer(t);
+
     if (mode === "easy") return;
 
-    setTimeout(() => {
+    hideTimer = setTimeout(() => {
       hideCards();
     }, 900);
 
   }, delay);
 }
 
-/* ---------------- FLIP ---------------- */
+/* ---------- FLIP ---------- */
 function revealCards() {
   document.getElementById("top1").className = "card face";
   document.getElementById("top2").className = "card face";
@@ -279,7 +318,7 @@ function hideCards() {
   document.getElementById("top2").innerText = "";
 }
 
-/* ---------------- NORMAL MODE ---------------- */
+/* ---------- GUESS ---------- */
 function guess(g) {
   if (!accepting) return;
 
@@ -296,7 +335,7 @@ function guess(g) {
   setTimeout(newRound, 800);
 }
 
-/* ---------------- OVERLAY SYSTEM ---------------- */
+/* ---------- OVERLAY ---------- */
 function showOverlay(title, options, cb) {
   document.getElementById("overlay").style.display = "flex";
   document.getElementById("overlayTitle").innerText = title;
@@ -315,7 +354,7 @@ function selectOverlay(val) {
   if (window.overlayCallback) window.overlayCallback(val);
 }
 
-/* ---------------- RECOGNITION ---------------- */
+/* ---------- RECOGNITION ---------- */
 function startRecognition() {
   showOverlay("Select Category", [
     "Match The Dealer",
@@ -343,7 +382,7 @@ function startRecognition() {
   });
 }
 
-/* ---------------- SCORING ---------------- */
+/* ---------- SCORING ---------- */
 function resolveRecognition(type, sub="") {
   accepting = false;
 
