@@ -124,7 +124,7 @@ button {
   <div id="top2" class="card back"></div>
 </div>
 
-<!-- ⏱ TIMER BETWEEN DEALER & PLAYER -->
+<!-- ⏱ STOPWATCH -->
 <div id="viewTimer"></div>
 
 <div class="bottom">
@@ -152,9 +152,11 @@ let rounds = 0;
 let mode = "";
 let accepting = false;
 
-let revealTimer;
-let hideTimer;
+/* STOPWATCH STATE */
 let viewTimerInterval;
+let viewStartTime;
+let viewRunning = false;
+let clearTimerDelay;
 
 /* ---------- CARDS ---------- */
 function randomCard() {
@@ -190,7 +192,7 @@ function evaluateTrilux(c) {
   return "No Bonus";
 }
 
-/* ---------- MATCH SYSTEM ---------- */
+/* ---------- MATCH ---------- */
 function matchDealerType() {
   let matches = cards.filter(c => c[0] === dealer[0]);
   let suited = cards.filter(c => c === dealer);
@@ -211,22 +213,24 @@ function getDelay() {
   return 1500 + Math.random() * 2500;
 }
 
-/* ---------- TIMER ---------- */
-function startViewTimer(seconds) {
+/* ---------- STOPWATCH ---------- */
+function startViewTimer() {
   clearInterval(viewTimerInterval);
 
-  let t = seconds;
-  document.getElementById("viewTimer").innerText = t;
+  viewStartTime = Date.now();
+  viewRunning = true;
+
+  document.getElementById("viewTimer").innerText = "0.00";
 
   viewTimerInterval = setInterval(() => {
-    t--;
-    if (t <= 0) {
-      clearInterval(viewTimerInterval);
-      document.getElementById("viewTimer").innerText = "";
-    } else {
-      document.getElementById("viewTimer").innerText = t;
-    }
-  }, 1000);
+    let elapsed = (Date.now() - viewStartTime) / 1000;
+    document.getElementById("viewTimer").innerText = elapsed.toFixed(2);
+  }, 50);
+}
+
+function stopViewTimer() {
+  viewRunning = false;
+  clearInterval(viewTimerInterval);
 }
 
 /* ---------- START GAME ---------- */
@@ -263,8 +267,7 @@ function buildButtons() {
 function newRound() {
   accepting = false;
 
-  clearTimeout(revealTimer);
-  clearTimeout(hideTimer);
+  clearTimeout(clearTimerDelay);
   clearInterval(viewTimerInterval);
   document.getElementById("viewTimer").innerText = "";
 
@@ -280,21 +283,15 @@ function newRound() {
 
   let delay = getDelay();
 
-  revealTimer = setTimeout(() => {
+  setTimeout(() => {
     revealCards();
     accepting = true;
 
-    let t = 3;
-    if (mode === "easy") t = 2;
-    if (mode === "normal") t = 4 + Math.floor(Math.random() * 3);
-    if (mode === "casino") t = Math.round((2 + Math.random() * 3) * 1.5);
-    if (mode === "extreme") t = 2 + Math.floor(Math.random() * 2);
-
-    startViewTimer(t);
+    startViewTimer();
 
     if (mode === "easy") return;
 
-    hideTimer = setTimeout(() => {
+    setTimeout(() => {
       hideCards();
     }, 900);
 
@@ -316,6 +313,12 @@ function hideCards() {
 
   document.getElementById("top1").innerText = "";
   document.getElementById("top2").innerText = "";
+
+  stopViewTimer();
+
+  clearTimerDelay = setTimeout(() => {
+    document.getElementById("viewTimer").innerText = "";
+  }, 1000);
 }
 
 /* ---------- GUESS ---------- */
