@@ -1,661 +1,708 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Trilux Trainer</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trilux Trainer</title>
 
-<style>
-body {
-  margin: 0;
-  color: white;
-  font-family: Arial, sans-serif;
-  text-align: center;
-  background-color: #064d1f;
-  background-image:
-    radial-gradient(rgba(0,0,0,0.25) 1px, transparent 1px),
-    radial-gradient(rgba(0,0,0,0.15) 1px, transparent 1px);
-  background-size: 3px 3px, 6px 6px;
-  background-position: 0 0, 2px 2px;
-}
+  <style>
+    body {
+      margin: 0;
+      color: white;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-color: #064d1f;
+      background-image:
+        radial-gradient(rgba(0,0,0,0.25) 1px, transparent 1px),
+        radial-gradient(rgba(0,0,0,0.15) 1px, transparent 1px);
+      background-size: 3px 3px, 6px 6px;
+      background-position: 0 0, 2px 2px;
+    }
 
-.screen { display: none; }
-.active { display: block; }
+    .screen {
+      display: none;
+    }
 
-.hidden {
-  display: none !important;
-}
+    .active {
+      display: block;
+    }
 
-/* ---------- HOME IMAGE MENU ---------- */
-#home {
-  min-height: 100vh;
-  display: none;
-  justify-content: center;
-  align-items: flex-start;
-  padding: 12px 0 24px;
-  box-sizing: border-box;
-}
+    /* ---------- HOME IMAGE MENU ---------- */
+    #home {
+      min-height: 100vh;
+      display: none;
+      justify-content: center;
+      align-items: flex-start;
+      padding: 12px 0 24px;
+      box-sizing: border-box;
+    }
 
-#home.active {
-  display: flex;
-}
+    #home.active {
+      display: flex;
+    }
 
-#menuWrapper {
-  position: relative;
-  width: min(100vw, 720px);
-  aspect-ratio: 1024 / 1536;
-}
+    #menuWrapper {
+      position: relative;
+      width: min(100vw, 720px);
+      aspect-ratio: 1024 / 1536;
+    }
 
-#menuArt {
-  width: 100%;
-  height: 100%;
-  display: block;
-  object-fit: contain;
-  user-select: none;
-  -webkit-user-drag: none;
-}
+    #menuArt {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: contain;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
 
-/* Invisible clickable areas */
-.menu-hitbox {
-  position: absolute;
-  background: transparent;
-  border: none;
-  padding: 0;
-  margin: 0;
-  cursor: pointer;
-}
+    .menu-hitbox {
+      position: absolute;
+      background: transparent;
+      border: none;
+      padding: 0;
+      margin: 0;
+      cursor: pointer;
+    }
 
-/* Top buttons */
-#hitPitch {
-  left: 9%;
-  top: 58%;
-  width: 38%;
-  height: 19%;
-}
+    /* Top buttons on collapsed/expanded art */
+    #hitPitch {
+      left: 9%;
+      top: 58%;
+      width: 38%;
+      height: 19%;
+    }
 
-#hitStandard {
-  right: 9%;
-  top: 58%;
-  width: 38%;
-  height: 19%;
-}
+    #hitStandard {
+      right: 9%;
+      top: 58%;
+      width: 38%;
+      height: 19%;
+    }
 
-/* Expanded-only difficulty buttons */
-.expanded-only {
-  display: none;
-}
+    /* Expanded-only difficulty buttons */
+    .expanded-only {
+      display: none;
+    }
 
-#menuWrapper.expanded .expanded-only {
-  display: block;
-}
+    #menuWrapper.expanded .expanded-only {
+      display: block;
+    }
 
-#hitEasy {
-  left: 19%;
-  top: 76%;
-  width: 62%;
-  height: 7.2%;
-}
+    #hitEasy {
+      left: 19%;
+      top: 76%;
+      width: 62%;
+      height: 7.2%;
+    }
 
-#hitNormal {
-  left: 19%;
-  top: 84%;
-  width: 62%;
-  height: 7.2%;
-}
+    #hitNormal {
+      left: 19%;
+      top: 84%;
+      width: 62%;
+      height: 7.2%;
+    }
 
-#hitCasino {
-  left: 19%;
-  top: 92%;
-  width: 62%;
-  height: 7.2%;
-}
+    #hitCasino {
+      left: 19%;
+      top: 92%;
+      width: 62%;
+      height: 7.2%;
+    }
 
-#hitExtreme {
-  left: 19%;
-  top: 100%;
-  width: 62%;
-  height: 7.2%;
-  transform: translateY(-8%);
-}
+    #hitExtreme {
+      left: 19%;
+      top: 99.3%;
+      width: 62%;
+      height: 7.2%;
+      transform: translateY(-8%);
+    }
 
-/* ---------- GAME ---------- */
-#game {
-  min-height: 100vh;
-  box-sizing: border-box;
-}
+    /* ---------- GAME ---------- */
+    #game {
+      min-height: 100vh;
+      box-sizing: border-box;
+    }
 
-#score {
-  font-size: 22px;
-  padding-top: 18px;
-}
+    #score {
+      font-size: 22px;
+      padding-top: 18px;
+    }
 
-.card {
-  width: 70px;
-  height: 100px;
-  border-radius: 10px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 24px;
-  margin: 5px;
-  box-shadow: 0 8px 18px rgba(0,0,0,0.28);
-}
+    .top-row {
+      margin-top: 24px;
+    }
 
-.face {
-  background: white;
-  color: black;
-}
+    .card {
+      width: 70px;
+      height: 100px;
+      border-radius: 10px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      margin: 5px;
+      box-shadow: 0 8px 18px rgba(0,0,0,0.28);
+    }
 
-.back {
-  background: repeating-linear-gradient(
-    45deg,
-    red,
-    red 10px,
-    white 10px,
-    white 20px
-  );
-  color: transparent;
-}
+    .face {
+      background: white;
+      color: black;
+    }
 
-.top-row {
-  margin-top: 24px;
-}
+    .back {
+      background: repeating-linear-gradient(
+        45deg,
+        red,
+        red 10px,
+        white 10px,
+        white 20px
+      );
+      color: transparent;
+    }
 
-#viewTimer {
-  font-size: 22px;
-  margin-top: 10px;
-  min-height: 30px;
-}
+    #viewTimer {
+      font-size: 22px;
+      margin-top: 10px;
+      min-height: 30px;
+    }
 
-.bottom {
-  position: fixed;
-  bottom: 140px;
-  width: 100%;
-}
+    .bottom {
+      position: fixed;
+      bottom: 140px;
+      width: 100%;
+      left: 0;
+    }
 
-.buttons {
-  position: fixed;
-  bottom: 10px;
-  width: 100%;
-  left: 0;
-}
+    .buttons {
+      position: fixed;
+      bottom: 10px;
+      width: 100%;
+      left: 0;
+    }
 
-.buttons button {
-  font-size: 13px;
-  margin: 3px;
-  padding: 8px 10px;
-  border-radius: 8px;
-  border: none;
-}
+    .buttons button {
+      font-size: 13px;
+      margin: 3px;
+      padding: 8px 10px;
+      border-radius: 8px;
+      border: none;
+    }
 
-/* ---------- OVERLAY ---------- */
-#overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.85);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  z-index: 999;
-  padding: 16px;
-  box-sizing: border-box;
-}
+    /* ---------- OVERLAY ---------- */
+    #overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.85);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      z-index: 999;
+      padding: 16px;
+      box-sizing: border-box;
+    }
 
-#overlayTitle {
-  margin-bottom: 12px;
-  font-size: 24px;
-}
+    #overlayTitle {
+      margin-bottom: 12px;
+      font-size: 24px;
+    }
 
-#overlayButtons {
-  display: flex;
-  flex-direction: column;
-  width: min(90vw, 360px);
-}
+    #overlayButtons {
+      display: flex;
+      flex-direction: column;
+      width: min(90vw, 360px);
+    }
 
-#overlayButtons button {
-  font-size: 18px;
-  margin: 6px 0;
-  padding: 12px;
-  border-radius: 10px;
-  border: none;
-}
-</style>
+    #overlayButtons button {
+      font-size: 18px;
+      margin: 6px 0;
+      padding: 12px;
+      border-radius: 10px;
+      border: none;
+    }
+  </style>
 </head>
-
 <body>
 
-<!-- HOME -->
-<div id="home" class="screen active">
-  <div id="menuWrapper">
-    <img id="menuArt" src="menu_collapsed.PNG" alt="Trilux menu">
+  <!-- HOME -->
+  <div id="home" class="screen active">
+    <div id="menuWrapper">
+      <img id="menuArt" src="menu_collapsed.PNG" alt="Trilux menu">
 
-    <button id="hitPitch" class="menu-hitbox" onclick="togglePitchMenu()" aria-label="Pitch"></button>
-    <button id="hitStandard" class="menu-hitbox" onclick="startGame('recognition')" aria-label="Standard Blackjack"></button>
+      <button id="hitPitch" class="menu-hitbox" onclick="togglePitchMenu()" aria-label="Pitch"></button>
+      <button id="hitStandard" class="menu-hitbox" onclick="startGame('recognition')" aria-label="Standard Blackjack"></button>
 
-    <button id="hitEasy" class="menu-hitbox expanded-only" onclick="startGame('easy')" aria-label="Easy"></button>
-    <button id="hitNormal" class="menu-hitbox expanded-only" onclick="startGame('normal')" aria-label="Normal"></button>
-    <button id="hitCasino" class="menu-hitbox expanded-only" onclick="startGame('casino')" aria-label="Casino"></button>
-    <button id="hitExtreme" class="menu-hitbox expanded-only" onclick="startGame('extreme')" aria-label="Extreme"></button>
-  </div>
-</div>
-
-<!-- GAME -->
-<div id="game" class="screen">
-  <div id="score">Score: 0 / 0</div>
-
-  <div class="top-row">
-    <div id="top1" class="card back"></div>
-    <div id="top2" class="card back"></div>
+      <button id="hitEasy" class="menu-hitbox expanded-only" onclick="startGame('easy')" aria-label="Easy"></button>
+      <button id="hitNormal" class="menu-hitbox expanded-only" onclick="startGame('normal')" aria-label="Normal"></button>
+      <button id="hitCasino" class="menu-hitbox expanded-only" onclick="startGame('casino')" aria-label="Casino"></button>
+      <button id="hitExtreme" class="menu-hitbox expanded-only" onclick="startGame('extreme')" aria-label="Extreme"></button>
+    </div>
   </div>
 
-  <div id="viewTimer"></div>
+  <!-- GAME -->
+  <div id="game" class="screen">
+    <div id="score">Score: 0 / 0</div>
 
-  <div class="bottom">
-    <div id="bottomCard" class="card face"></div>
+    <div class="top-row">
+      <div id="top1" class="card back"></div>
+      <div id="top2" class="card back"></div>
+    </div>
+
+    <div id="viewTimer"></div>
+
+    <div class="bottom">
+      <div id="bottomCard" class="card face"></div>
+    </div>
+
+    <div id="buttons" class="buttons"></div>
   </div>
 
-  <div id="buttons" class="buttons"></div>
-</div>
+  <!-- OVERLAY -->
+  <div id="overlay">
+    <div id="overlayTitle"></div>
+    <div id="overlayButtons"></div>
+  </div>
 
-<!-- OVERLAY -->
-<div id="overlay">
-  <div id="overlayTitle"></div>
-  <div id="overlayButtons"></div>
-</div>
+  <script>
+    /* ---------- STATE ---------- */
+    let gameState = "HOME";
+    let mode = "";
+    let pitchExpanded = false;
 
-<script>
-/* ---------- STATE ---------- */
-let gameState = "HOME";
-let mode = "";
-let pitchExpanded = false;
+    /* ---------- GAME DATA ---------- */
+    const ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+    const suits = ['♠', '♥', '♦', '♣'];
 
-/* ---------- GAME DATA ---------- */
-const ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
-const suits = ['♠', '♥', '♦', '♣'];
+    let cards = []; // [dealer/up card, player1, player2]
+    let score = 0;
+    let rounds = 0;
+    let decisionMade = false;
 
-let cards = [];
-let dealer = "";
-let score = 0;
-let rounds = 0;
-let decisionMade = false;
+    /* ---------- TIMERS ---------- */
+    let viewTimerInterval = null;
+    let viewStartTime = 0;
+    let revealTimeout = null;
+    let hideTimeout = null;
+    let roundResetTimeout = null;
 
-/* ---------- TIMERS ---------- */
-let viewTimerInterval = null;
-let viewStartTime = 0;
-let revealTimeout = null;
-let hideTimeout = null;
-let roundResetTimeout = null;
+    /* ---------- DOM ---------- */
+    const homeEl = document.getElementById("home");
+    const gameEl = document.getElementById("game");
+    const menuWrapperEl = document.getElementById("menuWrapper");
+    const menuArtEl = document.getElementById("menuArt");
+    const scoreEl = document.getElementById("score");
+    const viewTimerEl = document.getElementById("viewTimer");
+    const buttonsEl = document.getElementById("buttons");
+    const overlayEl = document.getElementById("overlay");
+    const overlayTitleEl = document.getElementById("overlayTitle");
+    const overlayButtonsEl = document.getElementById("overlayButtons");
+    const top1El = document.getElementById("top1");
+    const top2El = document.getElementById("top2");
+    const bottomCardEl = document.getElementById("bottomCard");
 
-/* ---------- DOM ---------- */
-const homeEl = document.getElementById("home");
-const gameEl = document.getElementById("game");
-const menuWrapperEl = document.getElementById("menuWrapper");
-const menuArtEl = document.getElementById("menuArt");
-const scoreEl = document.getElementById("score");
-const viewTimerEl = document.getElementById("viewTimer");
-const buttonsEl = document.getElementById("buttons");
-const overlayEl = document.getElementById("overlay");
-const overlayTitleEl = document.getElementById("overlayTitle");
-const overlayButtonsEl = document.getElementById("overlayButtons");
-const top1El = document.getElementById("top1");
-const top2El = document.getElementById("top2");
-const bottomCardEl = document.getElementById("bottomCard");
+    /* ---------- STATE CONTROL ---------- */
+    function setState(nextState) {
+      gameState = nextState;
+    }
 
-/* ---------- STATE CONTROL ---------- */
-function setState(s) {
-  gameState = s;
-}
+    /* ---------- HOME MENU ---------- */
+    function setMenuArt() {
+      if (pitchExpanded) {
+        menuWrapperEl.classList.add("expanded");
+        menuArtEl.src = "menu_expanded.PNG";
+      } else {
+        menuWrapperEl.classList.remove("expanded");
+        menuArtEl.src = "menu_collapsed.PNG";
+      }
+    }
 
-/* ---------- HOME MENU ---------- */
-function setMenuArt() {
-  if (pitchExpanded) {
-    menuWrapperEl.classList.add("expanded");
-    menuArtEl.src = "menu_expanded.PNG";
-  } else {
-    menuWrapperEl.classList.remove("expanded");
-    menuArtEl.src = "menu_collapsed.PNG";
-  }
-}
+    function togglePitchMenu() {
+      if (gameState !== "HOME") return;
+      pitchExpanded = !pitchExpanded;
+      setMenuArt();
+    }
 
-function togglePitchMenu() {
-  if (gameState !== "HOME") return;
-  pitchExpanded = !pitchExpanded;
-  setMenuArt();
-}
+    function showHome() {
+      clearRoundTimers();
+      setState("HOME");
+      gameEl.classList.remove("active");
+      homeEl.classList.add("active");
+      pitchExpanded = false;
+      setMenuArt();
+    }
 
-/* ---------- CARD HELPERS ---------- */
-function randomCard() {
-  return ranks[Math.floor(Math.random() * ranks.length)] +
-         suits[Math.floor(Math.random() * suits.length)];
-}
+    function showGame() {
+      homeEl.classList.remove("active");
+      gameEl.classList.add("active");
+    }
 
-function rankText(card) {
-  return card.slice(0, -1);
-}
-
-function suitText(card) {
-  return card.slice(-1);
-}
-
-function value(rank) {
-  return ranks.indexOf(rank) + 2;
-}
-
-/* ---------- EVALUATION ---------- */
-function evaluateTrilux(hand) {
-  const vals = hand.map(c => value(rankText(c))).sort((a, b) => a - b);
-  const suitsOnly = hand.map(c => suitText(c));
-
-  const counts = {};
-  vals.forEach(v => counts[v] = (counts[v] || 0) + 1);
-
-  const isThreeKind = Object.values(counts).includes(3);
-  const isPair = Object.values(counts).includes(2);
-  const isFlush = new Set(suitsOnly).size === 1;
-
-  const isStraight =
-    (vals[2] - vals[0] === 2 && new Set(vals).size === 3) ||
-    (vals.includes(14) && vals.includes(2) && vals.includes(3));
-
-  if (isStraight && isFlush) return "Straight Flush";
-  if (isThreeKind) return "Three of a Kind";
-  if (isFlush) return "Flush";
-  if (isStraight) return "Straight";
-  if (isPair) return "Pair";
-
-  return "No Bonus";
-}
-
-function isValidTriluxHand(hand) {
-  const result = evaluateTrilux(hand);
-  return (
-    result === "Pair" ||
-    result === "Straight" ||
-    result === "Flush" ||
-    result === "Three of a Kind" ||
-    result === "Straight Flush"
-  );
-}
-
-function generateValidHand() {
-  while (true) {
-    const hand = [randomCard(), randomCard(), randomCard()];
-    if (isValidTriluxHand(hand)) return hand;
-  }
-}
-
-/* ---------- MATCH THE DEALER ---------- */
-function matchDealerType() {
-  const playerCards = [cards[0], cards[1]];
-  const dealerRank = rankText(dealer);
-
-  const rankMatches = playerCards.filter(c => rankText(c) === dealerRank);
-  const suitedMatches = playerCards.filter(c => c === dealer);
-
-  if (rankMatches.length === 2 && suitedMatches.length === 2) return "2 suited matches";
-  if (rankMatches.length === 2 && suitedMatches.length === 1) return "1 non suited + 1 suited match";
-  if (suitedMatches.length === 1 && rankMatches.length === 1) return "1 suited match";
-  if (rankMatches.length === 2) return "2 non suited matches";
-  if (rankMatches.length === 1) return "1 non suited match";
-  return "No Match";
-}
-
-/* ---------- TIMING ---------- */
-function getDelay() {
-  return 1000 + Math.random() * 500; // 1.0–1.5s for all standard modes
-}
-
-function getViewTime() {
-  const base = 1500 + Math.random() * 2500;
-
-  if (mode === "easy") return 0;
-  if (mode === "normal") return 3000 + Math.random() * 3000;
-  if (mode === "casino") return base * 1.4;
-  if (mode === "extreme") return 1000 + Math.random() * 1100; // 1.0–2.1s
-
-  return base;
-}
-
-/* ---------- TIMER ---------- */
-function startViewTimer() {
-  stopViewTimer();
-  viewStartTime = Date.now();
-  viewTimerEl.innerText = "0.00";
-
-  viewTimerInterval = setInterval(() => {
-    const t = (Date.now() - viewStartTime) / 1000;
-    viewTimerEl.innerText = t.toFixed(2);
-  }, 50);
-}
-
-function stopViewTimer() {
-  if (viewTimerInterval) {
-    clearInterval(viewTimerInterval);
-    viewTimerInterval = null;
-  }
-}
-
-/* ---------- UI ---------- */
-function showHome() {
-  setState("HOME");
-  gameEl.classList.remove("active");
-  homeEl.classList.add("active");
-  pitchExpanded = false;
-  setMenuArt();
-}
-
-function showGame() {
-  homeEl.classList.remove("active");
-  gameEl.classList.add("active");
-}
-
-function buildButtons() {
-  if (mode === "recognition") {
-    buttonsEl.innerHTML = `
-      <button onclick="startRecognition()">Identify</button>
-    `;
-    return;
-  }
-
-  buttonsEl.innerHTML = `
-    <button onclick="guess('Straight Flush')">Str Flush</button>
-    <button onclick="guess('Three of a Kind')">3 Kind</button>
-    <button onclick="guess('Flush')">Flush</button>
-    <button onclick="guess('Straight')">Straight</button>
-    <button onclick="guess('Pair')">Pair</button>
-  `;
-}
-
-function updateScore() {
-  scoreEl.innerText = `Score: ${score} / ${rounds}`;
-}
-
-/* ---------- ROUND CLEANUP ---------- */
-function clearRoundTimers() {
-  if (revealTimeout) {
-    clearTimeout(revealTimeout);
-    revealTimeout = null;
-  }
-  if (hideTimeout) {
-    clearTimeout(hideTimeout);
-    hideTimeout = null;
-  }
-  if (roundResetTimeout) {
-    clearTimeout(roundResetTimeout);
-    roundResetTimeout = null;
-  }
-  stopViewTimer();
-}
-
-/* ---------- GAME FLOW ---------- */
-function startGame(selectedMode) {
-  mode = selectedMode;
-  decisionMade = false;
-  showGame();
-  updateScore();
-  buildButtons();
-  newRound();
-}
-
-function newRound() {
-  clearRoundTimers();
-  setState("RUNNING");
-  decisionMade = false;
-  viewTimerEl.innerText = "";
-
-  if (mode === "recognition") {
-    cards = [randomCard(), randomCard(), randomCard()];
-    dealer = randomCard();
-  } else {
-    cards = generateValidHand();
-    dealer = "";
-  }
-
-  bottomCardEl.innerText = cards[0];
-
-  top1El.className = "card back";
-  top2El.className = "card back";
-  top1El.innerText = "";
-  top2El.innerText = "";
-
-  revealTimeout = setTimeout(() => {
-    revealCards();
-    startViewTimer();
-    setState("WAITING_INPUT");
-
-    const viewTime = getViewTime();
-    if (viewTime > 0 && mode !== "recognition") {
-      hideTimeout = setTimeout(() => {
-        if (gameState === "WAITING_INPUT") {
-          hideCards();
+    /* ---------- CARD HELPERS ---------- */
+    function createDeck() {
+      const deck = [];
+      for (const rank of ranks) {
+        for (const suit of suits) {
+          deck.push(rank + suit);
         }
-      }, viewTime);
+      }
+      return deck;
     }
-  }, getDelay());
-}
 
-/* ---------- CARD DISPLAY ---------- */
-function revealCards() {
-  top1El.className = "card face";
-  top2El.className = "card face";
-  top1El.innerText = cards[1];
-  top2El.innerText = cards[2];
-}
+    function drawUniqueCards(count) {
+      const deck = createDeck();
+      for (let i = deck.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [deck[i], deck[j]] = [deck[j], deck[i]];
+      }
+      return deck.slice(0, count);
+    }
 
-function hideCards() {
-  top1El.className = "card back";
-  top2El.className = "card back";
-  top1El.innerText = "";
-  top2El.innerText = "";
-}
+    function rankText(card) {
+      return card.slice(0, -1);
+    }
 
-/* ---------- STANDARD GUESS ---------- */
-function guess(answer) {
-  if (gameState !== "WAITING_INPUT" || decisionMade || mode === "recognition") return;
+    function suitText(card) {
+      return card.slice(-1);
+    }
 
-  decisionMade = true;
-  setState("SHOWING_RESULT");
+    function value(rank) {
+      return ranks.indexOf(rank) + 2;
+    }
 
-  const correct = evaluateTrilux(cards);
-  rounds++;
-  if (answer === correct) score++;
+    /* ---------- TRILUX EVALUATION ---------- */
+    function evaluateTrilux(hand) {
+      const vals = hand.map(c => value(rankText(c))).sort((a, b) => a - b);
+      const suitsOnly = hand.map(c => suitText(c));
 
-  updateScore();
-  stopViewTimer();
-  hideCards();
+      const counts = {};
+      vals.forEach(v => { counts[v] = (counts[v] || 0) + 1; });
 
-  roundResetTimeout = setTimeout(() => {
-    viewTimerEl.innerText = "";
-    newRound();
-  }, 1000);
-}
+      const isThreeKind = Object.values(counts).includes(3);
+      const isPair = Object.values(counts).includes(2);
+      const isFlush = new Set(suitsOnly).size === 1;
 
-/* ---------- OVERLAY ---------- */
-function showOverlay(title, options, callback) {
-  setState("OVERLAY");
-  overlayTitleEl.innerText = title;
-  overlayButtonsEl.innerHTML = "";
+      const isStraight =
+        (vals[2] - vals[0] === 2 && new Set(vals).size === 3) ||
+        (vals.includes(14) && vals.includes(2) && vals.includes(3));
 
-  options.forEach(option => {
-    const btn = document.createElement("button");
-    btn.textContent = option;
-    btn.onclick = () => {
-      overlayEl.style.display = "none";
-      callback(option);
-    };
-    overlayButtonsEl.appendChild(btn);
-  });
+      if (isStraight && isFlush) return "Straight Flush";
+      if (isThreeKind) return "Three of a Kind";
+      if (isFlush) return "Flush";
+      if (isStraight) return "Straight";
+      if (isPair) return "Pair";
+      return "No Bonus";
+    }
 
-  overlayEl.style.display = "flex";
-}
+    function isValidStandardHand(hand) {
+      const result = evaluateTrilux(hand);
+      return (
+        result === "Pair" ||
+        result === "Straight" ||
+        result === "Flush" ||
+        result === "Three of a Kind" ||
+        result === "Straight Flush"
+      );
+    }
 
-/* ---------- RECOGNITION / STANDARD BLACKJACK ---------- */
-function startRecognition() {
-  if (mode !== "recognition") return;
-  if (gameState !== "WAITING_INPUT") return;
+    function generateStandardHand() {
+      while (true) {
+        const hand = drawUniqueCards(3);
+        if (isValidStandardHand(hand)) {
+          return hand;
+        }
+      }
+    }
 
-  showOverlay("Select Category", [
-    "Match The Dealer",
-    "Trilux",
-    "No Bonus"
-  ], (choice) => {
-    if (choice === "Match The Dealer") {
-      showOverlay("Select Match Type", [
-        "1 non suited match",
-        "2 non suited matches",
-        "1 suited match",
-        "1 non suited + 1 suited match",
-        "2 suited matches"
-      ], (subChoice) => {
-        resolveRecognition("match", subChoice);
+    /* ---------- RECOGNITION EVALUATION ---------- */
+    function matchDealerTypeForHand(hand) {
+      const dealerCard = hand[0];
+      const playerCards = [hand[1], hand[2]];
+      const dealerRank = rankText(dealerCard);
+
+      const rankMatches = playerCards.filter(c => rankText(c) === dealerRank);
+      const suitedMatches = playerCards.filter(c => c === dealerCard);
+
+      if (rankMatches.length === 2 && suitedMatches.length === 2) return "2 suited matches";
+      if (rankMatches.length === 2 && suitedMatches.length === 1) return "1 non suited + 1 suited match";
+      if (suitedMatches.length === 1 && rankMatches.length === 1) return "1 suited match";
+      if (rankMatches.length === 2) return "2 non suited matches";
+      if (rankMatches.length === 1) return "1 non suited match";
+      return "No Match";
+    }
+
+    function getRecognitionTriluxDetail(hand) {
+      const result = evaluateTrilux(hand);
+      if (
+        result === "Straight Flush" ||
+        result === "Three of a Kind" ||
+        result === "Flush" ||
+        result === "Straight"
+      ) {
+        return result;
+      }
+      return null; // pair excluded from Standard Blackjack mode
+    }
+
+    function getRecognitionOutcome(hand) {
+      const matchDetail = matchDealerTypeForHand(hand);
+      const triluxDetail = getRecognitionTriluxDetail(hand);
+
+      // prevent mixed-hit ambiguity
+      if (matchDetail !== "No Match" && triluxDetail !== null) {
+        return null;
+      }
+
+      if (matchDetail !== "No Match") {
+        return { category: "Match The Dealer", detail: matchDetail };
+      }
+
+      if (triluxDetail !== null) {
+        return { category: "Trilux", detail: triluxDetail };
+      }
+
+      return { category: "No Bonus", detail: "" };
+    }
+
+    function generateRecognitionHand() {
+      while (true) {
+        const hand = drawUniqueCards(3);
+        const outcome = getRecognitionOutcome(hand);
+        if (outcome !== null) {
+          return { hand, outcome };
+        }
+      }
+    }
+
+    /* ---------- TIMING ---------- */
+    function getDelay() {
+      return 1000 + Math.random() * 500; // 1.0–1.5s pre-reveal
+    }
+
+    function getViewTime() {
+      const base = 1500 + Math.random() * 2500;
+
+      if (mode === "easy") return 0;
+      if (mode === "normal") return 3000 + Math.random() * 3000;
+      if (mode === "casino") return base * 1.4;
+      if (mode === "extreme") return 1000 + Math.random() * 1100; // 1.0–2.1s
+      if (mode === "recognition") return 0; // stays up until decision
+
+      return base;
+    }
+
+    /* ---------- TIMER ---------- */
+    function startViewTimer() {
+      stopViewTimer();
+      viewStartTime = Date.now();
+      viewTimerEl.innerText = "0.00";
+
+      viewTimerInterval = setInterval(() => {
+        const elapsed = (Date.now() - viewStartTime) / 1000;
+        viewTimerEl.innerText = elapsed.toFixed(2);
+      }, 50);
+    }
+
+    function stopViewTimer() {
+      if (viewTimerInterval) {
+        clearInterval(viewTimerInterval);
+        viewTimerInterval = null;
+      }
+    }
+
+    /* ---------- UI ---------- */
+    function updateScore() {
+      scoreEl.innerText = `Score: ${score} / ${rounds}`;
+    }
+
+    function buildButtons() {
+      if (mode === "recognition") {
+        buttonsEl.innerHTML = `<button onclick="startRecognition()">Identify</button>`;
+        return;
+      }
+
+      buttonsEl.innerHTML = `
+        <button onclick="guessStandard('Straight Flush')">Str Flush</button>
+        <button onclick="guessStandard('Three of a Kind')">3 Kind</button>
+        <button onclick="guessStandard('Flush')">Flush</button>
+        <button onclick="guessStandard('Straight')">Straight</button>
+        <button onclick="guessStandard('Pair')">Pair</button>
+      `;
+    }
+
+    /* ---------- ROUND CLEANUP ---------- */
+    function clearRoundTimers() {
+      if (revealTimeout) {
+        clearTimeout(revealTimeout);
+        revealTimeout = null;
+      }
+      if (hideTimeout) {
+        clearTimeout(hideTimeout);
+        hideTimeout = null;
+      }
+      if (roundResetTimeout) {
+        clearTimeout(roundResetTimeout);
+        roundResetTimeout = null;
+      }
+      stopViewTimer();
+    }
+
+    /* ---------- GAME FLOW ---------- */
+    function startGame(selectedMode) {
+      mode = selectedMode;
+      decisionMade = false;
+      showGame();
+      buildButtons();
+      updateScore();
+      newRound();
+    }
+
+    function newRound() {
+      clearRoundTimers();
+      setState("RUNNING");
+      decisionMade = false;
+      viewTimerEl.innerText = "";
+
+      if (mode === "recognition") {
+        const recognition = generateRecognitionHand();
+        cards = recognition.hand;
+      } else {
+        cards = generateStandardHand();
+      }
+
+      bottomCardEl.innerText = cards[0]; // dealer/up card
+
+      top1El.className = "card back";
+      top2El.className = "card back";
+      top1El.innerText = "";
+      top2El.innerText = "";
+
+      revealTimeout = setTimeout(() => {
+        revealCards();
+        startViewTimer();
+        setState("WAITING_INPUT");
+
+        const viewTime = getViewTime();
+        if (viewTime > 0) {
+          hideTimeout = setTimeout(() => {
+            if (gameState === "WAITING_INPUT") {
+              hideCards();
+            }
+          }, viewTime);
+        }
+      }, getDelay());
+    }
+
+    /* ---------- CARD DISPLAY ---------- */
+    function revealCards() {
+      top1El.className = "card face";
+      top2El.className = "card face";
+      top1El.innerText = cards[1];
+      top2El.innerText = cards[2];
+    }
+
+    function hideCards() {
+      top1El.className = "card back";
+      top2El.className = "card back";
+      top1El.innerText = "";
+      top2El.innerText = "";
+    }
+
+    function finalizeRound(isCorrect) {
+      rounds++;
+      if (isCorrect) score++;
+      updateScore();
+
+      setState("SHOWING_RESULT");
+      decisionMade = true;
+      stopViewTimer();
+      hideCards();
+
+      roundResetTimeout = setTimeout(() => {
+        viewTimerEl.innerText = "";
+        newRound();
+      }, 1000);
+    }
+
+    /* ---------- STANDARD MODES ---------- */
+    function guessStandard(answer) {
+      if (mode === "recognition") return;
+      if (gameState !== "WAITING_INPUT" || decisionMade) return;
+
+      const correct = evaluateTrilux(cards);
+      finalizeRound(answer === correct);
+    }
+
+    /* ---------- OVERLAY ---------- */
+    function showOverlay(title, options, callback) {
+      setState("OVERLAY");
+      overlayTitleEl.innerText = title;
+      overlayButtonsEl.innerHTML = "";
+
+      options.forEach(option => {
+        const btn = document.createElement("button");
+        btn.textContent = option;
+        btn.onclick = () => {
+          overlayEl.style.display = "none";
+          callback(option);
+        };
+        overlayButtonsEl.appendChild(btn);
       });
-    } else if (choice === "Trilux") {
-      resolveRecognition("trilux", "");
-    } else {
-      resolveRecognition("none", "");
+
+      overlayEl.style.display = "flex";
     }
-  });
-}
 
-function resolveRecognition(type, subChoice) {
-  decisionMade = true;
-  setState("SHOWING_RESULT");
+    /* ---------- STANDARD BLACKJACK ---------- */
+    function startRecognition() {
+      if (mode !== "recognition") return;
+      if (gameState !== "WAITING_INPUT" || decisionMade) return;
 
-  let correct;
-  if (type === "match") {
-    correct = matchDealerType();
-  } else if (type === "trilux") {
-    correct = evaluateTrilux(cards);
-  } else {
-    correct = "No Bonus";
-  }
+      showOverlay("Select Category", [
+        "Match The Dealer",
+        "Trilux",
+        "No Bonus"
+      ], (choice) => {
+        if (choice === "Match The Dealer") {
+          showOverlay("Select Match Type", [
+            "1 non suited match",
+            "2 non suited matches",
+            "1 suited match",
+            "1 non suited + 1 suited match",
+            "2 suited matches"
+          ], (detailChoice) => {
+            resolveRecognition(choice, detailChoice);
+          });
+        } else if (choice === "Trilux") {
+          showOverlay("Select Trilux Type", [
+            "Straight Flush",
+            "Three of a Kind",
+            "Flush",
+            "Straight"
+          ], (detailChoice) => {
+            resolveRecognition(choice, detailChoice);
+          });
+        } else {
+          resolveRecognition(choice, "");
+        }
+      });
+    }
 
-  rounds++;
+    function resolveRecognition(categoryChoice, detailChoice) {
+      const outcome = getRecognitionOutcome(cards);
 
-  if (
-    (type === "match" && subChoice === correct) ||
-    (type === "trilux" && correct !== "No Bonus") ||
-    (type === "none" && correct === "No Bonus")
-  ) {
-    score++;
-  }
+      const isCorrectCategory = categoryChoice === outcome.category;
+      const requiresDetail =
+        outcome.category === "Match The Dealer" ||
+        outcome.category === "Trilux";
+      const isCorrectDetail = !requiresDetail || detailChoice === outcome.detail;
 
-  updateScore();
-  stopViewTimer();
-  hideCards();
+      finalizeRound(isCorrectCategory && isCorrectDetail);
+    }
 
-  roundResetTimeout = setTimeout(() => {
-    viewTimerEl.innerText = "";
-    newRound();
-  }, 1000);
-}
-
-/* ---------- INIT ---------- */
-window.onload = () => {
-  showHome();
-  updateScore();
-};
-</script>
-
+    /* ---------- INIT ---------- */
+    window.onload = () => {
+      showHome();
+      updateScore();
+    };
+  </script>
 </body>
 </html>
