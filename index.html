@@ -132,6 +132,10 @@ button {
 </div>
 
 <script>
+/* ---------- STATE MACHINE ---------- */
+let gameState = "HOME";
+
+/* ---------- GAME STATE ---------- */
 const ranks = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
 const suits = ['♠','♥','♦','♣'];
 
@@ -140,13 +144,17 @@ let dealer = "";
 let score = 0;
 let rounds = 0;
 let mode = "";
-let accepting = false;
+
 let decisionMade = false;
 
-/* STOPWATCH */
+/* ---------- TIMER ---------- */
 let viewTimerInterval;
 let viewStartTime;
-let clearTimerDelay;
+
+/* ---------- STATE CONTROL ---------- */
+function setState(s) {
+  gameState = s;
+}
 
 /* ---------- CARDS ---------- */
 function randomCard() {
@@ -198,30 +206,28 @@ function matchDealerType() {
 /* ---------- TIMING ---------- */
 function getDelay() {
   if (mode === "easy") return 400;
-  if (mode === "normal") return 3000 + Math.random() * 3000;
-  if (mode === "casino") return (1500 + Math.random() * 2500) * 1.5;
-  return 1500 + Math.random() * 2500;
+  if (mode === "normal") return 3000 + Math.random()*3000;
+  if (mode === "casino") return (1500 + Math.random()*2500)*1.5;
+  return 1500 + Math.random()*2500;
 }
 
-/* NEW: REAL VIEW WINDOW CONTROL */
 function getViewTime() {
   if (mode === "easy") return 0;
-  if (mode === "normal") return 3000 + Math.random() * 3000;
-  if (mode === "casino") return (2000 + Math.random() * 3000) * 1.5;
-  return 1500 + Math.random() * 2500;
+  if (mode === "normal") return 3000 + Math.random()*3000;
+  if (mode === "casino") return (2000 + Math.random()*3000)*1.5;
+  return 1500 + Math.random()*2500;
 }
 
-/* ---------- STOPWATCH ---------- */
+/* ---------- TIMER ---------- */
 function startViewTimer() {
   clearInterval(viewTimerInterval);
-
   viewStartTime = Date.now();
 
   document.getElementById("viewTimer").innerText = "0.00";
 
   viewTimerInterval = setInterval(() => {
-    let elapsed = (Date.now() - viewStartTime) / 1000;
-    document.getElementById("viewTimer").innerText = elapsed.toFixed(2);
+    let t = (Date.now() - viewStartTime)/1000;
+    document.getElementById("viewTimer").innerText = t.toFixed(2);
   }, 50);
 }
 
@@ -229,9 +235,10 @@ function stopViewTimer() {
   clearInterval(viewTimerInterval);
 }
 
-/* ---------- GAME FLOW ---------- */
+/* ---------- START ---------- */
 function startGame(m) {
   mode = m;
+  setState("RUNNING");
 
   document.getElementById("home").classList.remove("active");
   document.getElementById("game").classList.add("active");
@@ -240,6 +247,7 @@ function startGame(m) {
   newRound();
 }
 
+/* ---------- BUTTONS ---------- */
 function buildButtons() {
   let html = "";
 
@@ -260,8 +268,8 @@ function buildButtons() {
 
 /* ---------- ROUND ---------- */
 function newRound() {
+  setState("RUNNING");
   decisionMade = false;
-  accepting = false;
 
   clearInterval(viewTimerInterval);
   document.getElementById("viewTimer").innerText = "";
@@ -278,14 +286,15 @@ function newRound() {
 
   setTimeout(() => {
     revealCards();
-    accepting = true;
+    setState("WAITING_INPUT");
+
     startViewTimer();
 
     let viewTime = getViewTime();
 
     if (viewTime > 0) {
       setTimeout(() => {
-        hideCards();
+        if (gameState === "WAITING_INPUT") hideCards();
       }, viewTime);
     }
 
@@ -311,10 +320,10 @@ function hideCards() {
 
 /* ---------- GUESS ---------- */
 function guess(g) {
-  if (!accepting || decisionMade) return;
+  if (gameState !== "WAITING_INPUT" || decisionMade) return;
 
   decisionMade = true;
-  accepting = false;
+  setState("SHOWING_RESULT");
 
   let correct = evaluateTrilux(cards);
 
@@ -325,7 +334,6 @@ function guess(g) {
     `Score: ${score} / ${rounds}`;
 
   stopViewTimer();
-
   hideCards();
 
   setTimeout(() => {
@@ -334,15 +342,11 @@ function guess(g) {
   }, 1000);
 }
 
-/* ---------- RECOGNITION ---------- */
-function startRecognition() {
-  alert("Recognition mode kept intact (unchanged flow in this build placeholder).");
-}
-
-let score = 0;
-let rounds = 0;
-
-newRound();
+/* ---------- INIT ---------- */
+window.onload = () => {
+  document.getElementById("home").classList.add("active");
+  document.getElementById("game").classList.remove("active");
+};
 </script>
 
 </body>
