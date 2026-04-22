@@ -126,10 +126,7 @@ button {
 </div>
 
 <!-- OVERLAY -->
-<div id="overlay">
-  <h3 id="overlayTitle"></h3>
-  <div id="overlayButtons"></div>
-</div>
+<div id="overlay"></div>
 
 <script>
 /* ---------- STATE ---------- */
@@ -145,7 +142,6 @@ let rounds = 0;
 let mode = "";
 let decisionMade = false;
 
-/* ---------- TIMER ---------- */
 let viewTimerInterval;
 let viewStartTime;
 
@@ -154,7 +150,7 @@ function setState(s) {
   gameState = s;
 }
 
-/* ---------- CARD GENERATION ---------- */
+/* ---------- CARDS ---------- */
 function randomCard() {
   return ranks[Math.floor(Math.random()*ranks.length)] +
          suits[Math.floor(Math.random()*suits.length)];
@@ -186,17 +182,31 @@ function evaluateTrilux(c) {
   if (isStraight) return "Straight";
   if (isPair) return "Pair";
 
-  // SAFETY: should never be used in standard modes anymore
-  return "Pair";
+  return "Pair"; // safety fallback (never exposed in output)
 }
 
-/* ---------- GUARANTEED VALID HAND ---------- */
+/* ---------- VALID HAND ENGINE ---------- */
+function isValidTriluxHand(hand) {
+  let result = evaluateTrilux(hand);
+
+  return (
+    result === "Pair" ||
+    result === "Straight" ||
+    result === "Flush" ||
+    result === "Three of a Kind" ||
+    result === "Straight Flush"
+  );
+}
+
 function generateValidHand() {
   while (true) {
-    let hand = [randomCard(), randomCard(), randomCard()];
-    let result = evaluateTrilux(hand);
+    let hand = [
+      randomCard(),
+      randomCard(),
+      randomCard()
+    ];
 
-    if (result !== "Pair" || mode !== "recognition") {
+    if (isValidTriluxHand(hand)) {
       return hand;
     }
   }
@@ -234,7 +244,7 @@ function stopViewTimer() {
   clearInterval(viewTimerInterval);
 }
 
-/* ---------- START ---------- */
+/* ---------- GAME START ---------- */
 function startGame(m) {
   mode = m;
   setState("RUNNING");
