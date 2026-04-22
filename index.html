@@ -7,10 +7,16 @@
 <style>
 body {
   margin: 0;
-  background: #0b6623;
   color: white;
   font-family: Arial;
   text-align: center;
+
+  background-color: #064d1f;
+  background-image:
+    radial-gradient(rgba(0,0,0,0.25) 1px, transparent 1px),
+    radial-gradient(rgba(0,0,0,0.15) 1px, transparent 1px);
+  background-size: 3px 3px, 6px 6px;
+  background-position: 0 0, 2px 2px;
 }
 
 .screen { display:none; }
@@ -67,27 +73,6 @@ button {
   border-radius: 8px;
   border: none;
 }
-
-#overlay {
-  position: fixed;
-  top:0;
-  left:0;
-  width:100%;
-  height:100%;
-  background: rgba(0,0,0,0.85);
-  display:none;
-  align-items:center;
-  justify-content:center;
-  flex-direction:column;
-  z-index:999;
-}
-
-#overlay button {
-  font-size:16px;
-  margin:5px;
-  padding:10px;
-  border-radius:8px;
-}
 </style>
 </head>
 
@@ -125,32 +110,19 @@ button {
 
 </div>
 
-<!-- OVERLAY -->
-<div id="overlay"></div>
-
 <script>
-/* ---------- STATE ---------- */
-let gameState = "HOME";
-
-const ranks = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
-const suits = ['♠','♥','♦','♣'];
-
+let mode = "";
 let cards = [];
-let dealer = "";
 let score = 0;
 let rounds = 0;
-let mode = "";
 let decisionMade = false;
 
 let viewTimerInterval;
 let viewStartTime;
 
-/* ---------- STATE CONTROL ---------- */
-function setState(s) {
-  gameState = s;
-}
+const ranks = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
+const suits = ['♠','♥','♦','♣'];
 
-/* ---------- CARDS ---------- */
 function randomCard() {
   return ranks[Math.floor(Math.random()*ranks.length)] +
          suits[Math.floor(Math.random()*suits.length)];
@@ -160,7 +132,7 @@ function value(r) {
   return ranks.indexOf(r) + 2;
 }
 
-/* ---------- EVALUATION ---------- */
+/* ---------- VALID HAND SYSTEM ---------- */
 function evaluateTrilux(c) {
   let vals = c.map(x => value(x.slice(0,-1))).sort((a,b)=>a-b);
   let suitsOnly = c.map(x => x.slice(-1));
@@ -168,8 +140,8 @@ function evaluateTrilux(c) {
   let counts = {};
   vals.forEach(v => counts[v] = (counts[v] || 0) + 1);
 
-  let isThreeKind = Object.values(counts).includes(3);
   let isPair = Object.values(counts).includes(2);
+  let isThreeKind = Object.values(counts).includes(3);
   let isFlush = new Set(suitsOnly).size === 1;
 
   let isStraight =
@@ -182,73 +154,49 @@ function evaluateTrilux(c) {
   if (isStraight) return "Straight";
   if (isPair) return "Pair";
 
-  return "Pair"; // safety fallback (never exposed in output)
+  return "Pair";
 }
 
-/* ---------- VALID HAND ENGINE ---------- */
 function isValidTriluxHand(hand) {
-  let result = evaluateTrilux(hand);
-
+  let r = evaluateTrilux(hand);
   return (
-    result === "Pair" ||
-    result === "Straight" ||
-    result === "Flush" ||
-    result === "Three of a Kind" ||
-    result === "Straight Flush"
+    r === "Pair" ||
+    r === "Straight" ||
+    r === "Flush" ||
+    r === "Three of a Kind" ||
+    r === "Straight Flush"
   );
 }
 
 function generateValidHand() {
   while (true) {
-    let hand = [
-      randomCard(),
-      randomCard(),
-      randomCard()
-    ];
-
-    if (isValidTriluxHand(hand)) {
-      return hand;
-    }
+    let hand = [randomCard(), randomCard(), randomCard()];
+    if (isValidTriluxHand(hand)) return hand;
   }
 }
 
 /* ---------- TIMING ---------- */
 function getDelay() {
-  if (mode === "easy") return 400;
-  if (mode === "normal") return 3000 + Math.random()*3000;
-  if (mode === "casino") return (1500 + Math.random()*2500)*1.5;
-  return 1500 + Math.random()*2500;
+  return 1000 + Math.random() * 500; // 1.0–1.5s pre-reveal (ALL MODES)
 }
 
 function getViewTime() {
+  let base = 1500 + Math.random() * 2500;
+
   if (mode === "easy") return 0;
   if (mode === "normal") return 3000 + Math.random()*3000;
-  if (mode === "casino") return (2000 + Math.random()*3000)*1.5;
-  return 1500 + Math.random()*2500;
+  if (mode === "casino") return base * 1.4;
+
+  if (mode === "extreme") {
+    return 1000 + Math.random() * 1100; // 1.0–2.1s
+  }
+
+  return base;
 }
 
-/* ---------- TIMER ---------- */
-function startViewTimer() {
-  clearInterval(viewTimerInterval);
-  viewStartTime = Date.now();
-
-  document.getElementById("viewTimer").innerText = "0.00";
-
-  viewTimerInterval = setInterval(() => {
-    let t = (Date.now() - viewStartTime)/1000;
-    document.getElementById("viewTimer").innerText = t.toFixed(2);
-  }, 50);
-}
-
-function stopViewTimer() {
-  clearInterval(viewTimerInterval);
-}
-
-/* ---------- GAME START ---------- */
+/* ---------- GAME FLOW ---------- */
 function startGame(m) {
   mode = m;
-  setState("RUNNING");
-
   document.getElementById("home").classList.remove("active");
   document.getElementById("game").classList.add("active");
 
@@ -256,61 +204,44 @@ function startGame(m) {
   newRound();
 }
 
-/* ---------- BUTTONS ---------- */
 function buildButtons() {
-  let html = "";
-
-  if (mode === "recognition") {
-    html = `<button onclick="startRecognition()">Identify</button>`;
-  } else {
-    html = `
-      <button onclick="guess('Straight Flush')">Str Flush</button>
-      <button onclick="guess('Three of a Kind')">3 Kind</button>
-      <button onclick="guess('Flush')">Flush</button>
-      <button onclick="guess('Straight')">Straight</button>
-      <button onclick="guess('Pair')">Pair</button>
-    `;
-  }
-
-  document.getElementById("buttons").innerHTML = html;
+  document.getElementById("buttons").innerHTML = `
+    <button onclick="guess('Straight Flush')">Str Flush</button>
+    <button onclick="guess('Three of a Kind')">3 Kind</button>
+    <button onclick="guess('Flush')">Flush</button>
+    <button onclick="guess('Straight')">Straight</button>
+    <button onclick="guess('Pair')">Pair</button>
+  `;
 }
 
 /* ---------- ROUND ---------- */
 function newRound() {
-  setState("RUNNING");
   decisionMade = false;
 
   clearInterval(viewTimerInterval);
   document.getElementById("viewTimer").innerText = "";
 
   cards = generateValidHand();
-  dealer = cards[1];
 
   document.getElementById("bottomCard").innerText = cards[0];
 
   document.getElementById("top1").className = "card back";
   document.getElementById("top2").className = "card back";
-  document.getElementById("top1").innerText = "";
-  document.getElementById("top2").innerText = "";
 
   setTimeout(() => {
     revealCards();
-    setState("WAITING_INPUT");
-
     startViewTimer();
 
-    let viewTime = getViewTime();
+    let view = getViewTime();
 
-    if (viewTime > 0) {
-      setTimeout(() => {
-        if (gameState === "WAITING_INPUT") hideCards();
-      }, viewTime);
+    if (view > 0) {
+      setTimeout(hideCards, view);
     }
 
   }, getDelay());
 }
 
-/* ---------- FLIP ---------- */
+/* ---------- CARD DISPLAY ---------- */
 function revealCards() {
   document.getElementById("top1").className = "card face";
   document.getElementById("top2").className = "card face";
@@ -322,17 +253,25 @@ function revealCards() {
 function hideCards() {
   document.getElementById("top1").className = "card back";
   document.getElementById("top2").className = "card back";
-
   document.getElementById("top1").innerText = "";
   document.getElementById("top2").innerText = "";
 }
 
+/* ---------- TIMER ---------- */
+function startViewTimer() {
+  viewStartTime = Date.now();
+  document.getElementById("viewTimer").innerText = "0.00";
+
+  viewTimerInterval = setInterval(() => {
+    let t = (Date.now() - viewStartTime)/1000;
+    document.getElementById("viewTimer").innerText = t.toFixed(2);
+  }, 50);
+}
+
 /* ---------- GUESS ---------- */
 function guess(g) {
-  if (gameState !== "WAITING_INPUT" || decisionMade) return;
-
+  if (decisionMade) return;
   decisionMade = true;
-  setState("SHOWING_RESULT");
 
   let correct = evaluateTrilux(cards);
 
@@ -342,20 +281,11 @@ function guess(g) {
   document.getElementById("score").innerText =
     `Score: ${score} / ${rounds}`;
 
-  stopViewTimer();
+  clearInterval(viewTimerInterval);
   hideCards();
 
-  setTimeout(() => {
-    document.getElementById("viewTimer").innerText = "";
-    newRound();
-  }, 1000);
+  setTimeout(newRound, 1000);
 }
-
-/* ---------- INIT ---------- */
-window.onload = () => {
-  document.getElementById("home").classList.add("active");
-  document.getElementById("game").classList.remove("active");
-};
 </script>
 
 </body>
