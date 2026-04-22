@@ -61,11 +61,9 @@ button {
   border: none;
 }
 
-#timer {
-  margin-top: 10px;
-}
+#timer { margin-top: 10px; }
 
-/* 🔥 Overlay system */
+/* 🔥 Overlay */
 #overlay {
   position: fixed;
   top:0; left:0;
@@ -121,7 +119,7 @@ button {
 
 </div>
 
-<!-- 🔥 OVERLAY -->
+<!-- OVERLAY -->
 <div id="overlay">
   <h3 id="overlayTitle">Select</h3>
   <div id="overlayButtons"></div>
@@ -135,11 +133,10 @@ let cards = [];
 let dealer = "";
 let score = 0;
 let rounds = 0;
-let startTime = 0;
 let mode = "";
 let accepting = false;
 
-/* ---------------- CARD ---------------- */
+/* ---------------- CARDS ---------------- */
 function randomCard() {
   return ranks[Math.floor(Math.random()*ranks.length)] +
          suits[Math.floor(Math.random()*suits.length)];
@@ -149,24 +146,41 @@ function value(r) {
   return ranks.indexOf(r) + 2;
 }
 
-/* ---------------- OVERLAY SYSTEM ---------------- */
-function showOverlay(title, options, callback) {
-  document.getElementById("overlay").style.display = "flex";
-  document.getElementById("overlayTitle").innerText = title;
+/* ---------------- TRILUX ENGINE ---------------- */
+function evaluateTrilux(c) {
+  let vals = c.map(x => value(x.slice(0,-1))).sort((a,b)=>a-b);
+  let suitsOnly = c.map(x => x.slice(-1));
 
-  let html = "";
+  let counts = {};
+  vals.forEach(v => counts[v] = (counts[v] || 0) + 1);
 
-  options.forEach(opt => {
-    html += `<button onclick="selectOverlay('${opt}')">${opt}</button>`;
-  });
+  let isThreeKind = Object.values(counts).includes(3);
+  let isPair = Object.values(counts).includes(2);
+  let isFlush = new Set(suitsOnly).size === 1;
 
-  document.getElementById("overlayButtons").innerHTML = html;
-  window.overlayCallback = callback;
+  let isStraight =
+    (vals[2]-vals[0]===2 && new Set(vals).size===3) ||
+    (vals.includes(14)&&vals.includes(2)&&vals.includes(3));
+
+  if (isStraight && isFlush) return "Straight Flush";
+  if (isThreeKind) return "Three of a Kind";
+  if (isFlush) return "Flush";
+  if (isStraight) return "Straight";
+  if (isPair) return "Pair";
+  return "No Bonus";
 }
 
-function selectOverlay(value) {
-  document.getElementById("overlay").style.display = "none";
-  if (window.overlayCallback) window.overlayCallback(value);
+/* ---------------- DEALER MATCH ---------------- */
+function matchDealerType() {
+  let matches = cards.filter(c => c[0] === dealer[0]);
+  let suited = cards.filter(c => c === dealer);
+
+  if (matches.length === 2 && suited.length === 2) return "2 suited matches";
+  if (matches.length === 1 && suited.length === 1) return "1 non suited + 1 suited match";
+  if (suited.length === 1) return "1 suited match";
+  if (matches.length === 2) return "2 non suited matches";
+  if (matches.length === 1) return "1 non suited match";
+  return "No Match";
 }
 
 /* ---------------- GAME START ---------------- */
@@ -185,9 +199,7 @@ function buildButtons() {
   let html = "";
 
   if (mode === "recognition") {
-    html += `
-      <button onclick="startRecognitionFlow()">Decision</button>
-    `;
+    html += `<button onclick="startRecognitionFlow()">Make Decision</button>`;
   } else {
     html += `
       <button onclick="guess('Straight Flush')">Str Flush</button>
@@ -208,21 +220,19 @@ function newRound() {
   dealer = cards[1];
 
   document.getElementById("bottomCard").innerText = cards[0];
-
   document.getElementById("top1").innerText = cards[1];
   document.getElementById("top2").innerText = cards[2];
 
-  startTime = Date.now();
   accepting = true;
 }
 
-/* ---------------- NORMAL MODE GUESS ---------------- */
+/* ---------------- NORMAL MODE ---------------- */
 function guess(g) {
   if (!accepting) return;
 
   accepting = false;
 
-  let correct = "Bonus Hit";
+  let correct = evaluateTrilux(cards);
 
   rounds++;
   if (g === correct) score++;
@@ -233,7 +243,26 @@ function guess(g) {
   setTimeout(newRound, 800);
 }
 
-/* ---------------- RECOGNITION FLOW ---------------- */
+/* ---------------- OVERLAY SYSTEM ---------------- */
+function showOverlay(title, options, cb) {
+  document.getElementById("overlay").style.display = "flex";
+  document.getElementById("overlayTitle").innerText = title;
+
+  let html = "";
+  options.forEach(opt => {
+    html += `<button onclick="selectOverlay('${opt}')">${opt}</button>`;
+  });
+
+  document.getElementById("overlayButtons").innerHTML = html;
+  window.overlayCallback = cb;
+}
+
+function selectOverlay(val) {
+  document.getElementById("overlay").style.display = "none";
+  if (window.overlayCallback) window.overlayCallback(val);
+}
+
+/* ---------------- RECOGNITION MODE ---------------- */
 function startRecognitionFlow() {
   showOverlay("Select Category", [
     "Match The Dealer",
@@ -250,34 +279,33 @@ function startRecognitionFlow() {
         "1 non suited + 1 suited match",
         "2 suited matches"
       ], function(sub) {
-        evaluateRecognition("match", sub);
+        resolveRecognition("match", sub);
       });
 
     } else if (choice === "Trilux") {
-      evaluateRecognition("trilux");
+      resolveRecognition("trilux");
     } else {
-      evaluateRecognition("none");
+      resolveRecognition("none");
     }
 
   });
 }
 
-/* ---------------- RECOGNITION RESULT ---------------- */
-function evaluateRecognition(type, subType="") {
+/* ---------------- SCORING ---------------- */
+function resolveRecognition(type, sub="") {
   accepting = false;
 
   let correct;
 
-  if (type === "match") {
-    correct = subType;
-  } else if (type === "trilux") {
-    correct = "Trilux Hit";
-  } else {
-    correct = "No Bonus";
-  }
+  if (type === "match") correct = matchDealerType();
+  else if (type === "trilux") correct = evaluateTrilux(cards);
+  else correct = "No Bonus";
 
   rounds++;
-  score++;
+
+  if (sub === correct || (type === "none" && correct === "No Bonus")) {
+    score++;
+  }
 
   document.getElementById("score").innerText =
     `Score: ${score} / ${rounds}`;
