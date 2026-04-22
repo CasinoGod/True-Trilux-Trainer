@@ -226,7 +226,7 @@
   <!-- HOME -->
   <div id="home" class="screen active">
     <div id="menuWrapper">
-      <img id="menuArt" src="./menu_collapsed.PNG" alt="Trilux menu">
+      <img id="menuArt" src="./menu_collapsed.png" alt="Trilux menu">
 
       <button id="hitPitch" class="menu-hitbox" onclick="togglePitchMenu()" aria-label="Pitch"></button>
       <button id="hitStandard" class="menu-hitbox" onclick="startGame('recognition')" aria-label="Standard Blackjack"></button>
@@ -302,10 +302,10 @@
     function setMenuArt() {
       if (pitchExpanded) {
         menuWrapperEl.classList.add("expanded");
-        menuArtEl.src = "./menu_expanded.PNG";
+        menuArtEl.src = "./menu_expanded.png";
       } else {
         menuWrapperEl.classList.remove("expanded");
-        menuArtEl.src = "./menu_collapsed.PNG";
+        menuArtEl.src = "./menu_collapsed.png";
       }
     }
 
