@@ -11,12 +11,32 @@
       color: white;
       font-family: Arial, sans-serif;
       text-align: center;
-      background-color: #064d1f;
+
+      background-color: #043b18;
       background-image:
-        radial-gradient(rgba(0,0,0,0.25) 1px, transparent 1px),
-        radial-gradient(rgba(0,0,0,0.15) 1px, transparent 1px);
-      background-size: 3px 3px, 6px 6px;
-      background-position: 0 0, 2px 2px;
+        radial-gradient(circle at 20% 20%, rgba(255,255,255,0.025) 0%, transparent 35%),
+        radial-gradient(circle at 80% 30%, rgba(255,255,255,0.018) 0%, transparent 30%),
+        radial-gradient(circle at 50% 80%, rgba(0,0,0,0.08) 0%, transparent 40%),
+        repeating-linear-gradient(
+          0deg,
+          rgba(255,255,255,0.012) 0px,
+          rgba(255,255,255,0.012) 2px,
+          rgba(0,0,0,0.012) 2px,
+          rgba(0,0,0,0.012) 4px
+        ),
+        repeating-linear-gradient(
+          90deg,
+          rgba(255,255,255,0.01) 0px,
+          rgba(255,255,255,0.01) 2px,
+          rgba(0,0,0,0.01) 2px,
+          rgba(0,0,0,0.01) 4px
+        ),
+        radial-gradient(circle at center,
+          #0a4f24 0%,
+          #06441d 45%,
+          #043717 75%,
+          #032b12 100%
+        );
     }
 
     .screen {
@@ -68,12 +88,32 @@
       cursor: pointer;
     }
 
-    /* top split buttons */
-    #hitPitch {
+    .pitch-expanded {
+      display: none;
+    }
+
+    #menuWrapper.expanded .pitch-collapsed {
+      display: none;
+    }
+
+    #menuWrapper.expanded .pitch-expanded {
+      display: block;
+    }
+
+    /* collapsed pitch */
+    #hitPitchCollapsed {
       left: 10.5%;
       top: 58.8%;
       width: 35.5%;
       height: 10.5%;
+    }
+
+    /* expanded pitch */
+    #hitPitchExpanded {
+      left: 10.5%;
+      top: 58.8%;
+      width: 35.5%;
+      height: 7.5%;
     }
 
     #hitStandard {
@@ -83,7 +123,6 @@
       height: 10.5%;
     }
 
-    /* expanded-only difficulty buttons */
     .expanded-only {
       display: none;
     }
@@ -106,7 +145,7 @@
       height: 5.8%;
     }
 
-    #hitCasino {
+    #hitRealistic {
       left: 20%;
       top: 89.5%;
       width: 60%;
@@ -120,20 +159,27 @@
       height: 5.8%;
     }
 
-    #clearCacheBtn {
+    #homeControls {
       position: fixed;
       bottom: 10px;
       left: 50%;
       transform: translateX(-50%);
+      display: flex;
+      gap: 10px;
+      z-index: 40;
+    }
+
+    #clearCacheBtn,
+    #statsBtn {
       font-size: 11px;
       padding: 4px 8px;
       border: none;
       border-radius: 8px;
       background: rgba(255,255,255,0.12);
-      color: rgba(255,255,255,0.72);
-      z-index: 40;
-      backdrop-filter: blur(2px);
-      -webkit-backdrop-filter: blur(2px);
+      color: rgba(255,255,255,0.7);
+      box-shadow: none;
+      font-weight: normal;
+      letter-spacing: normal;
     }
 
     /* ---------- GAME ---------- */
@@ -147,15 +193,19 @@
       top: 14px;
       left: 14px;
       z-index: 50;
-      font-size: 16px;
+      font-size: 15px;
       padding: 8px 12px;
       border: none;
       border-radius: 10px;
       background: rgba(0,0,0,0.45);
       color: white;
-      backdrop-filter: blur(2px);
-      -webkit-backdrop-filter: blur(2px);
+      backdrop-filter: blur(3px);
+      -webkit-backdrop-filter: blur(3px);
       box-shadow: 0 4px 10px rgba(0,0,0,0.25);
+    }
+
+    #backButton:active {
+      transform: translateY(1px);
     }
 
     #score {
@@ -199,6 +249,12 @@
       font-size: 22px;
       margin-top: 10px;
       min-height: 30px;
+      color: white;
+      transition: color 0.2s ease;
+    }
+
+    #viewTimer.hidden-phase {
+      color: #ff3b3b;
     }
 
     .bottom {
@@ -216,11 +272,33 @@
     }
 
     .buttons button {
-      font-size: 13px;
-      margin: 3px;
-      padding: 8px 10px;
-      border-radius: 8px;
-      border: none;
+      font-size: 14px;
+      margin: 4px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid #7a0000;
+      color: #ffffff;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      background: linear-gradient(
+        to bottom,
+        #ff4d4d 0%,
+        #d11a1a 40%,
+        #a30000 100%
+      );
+      box-shadow:
+        inset 0 2px 0 rgba(255,255,255,0.25),
+        inset 0 -3px 6px rgba(0,0,0,0.4),
+        0 6px 12px rgba(0,0,0,0.4);
+      transition: all 0.12s ease;
+    }
+
+    .buttons button:active {
+      transform: translateY(2px);
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.2),
+        inset 0 -2px 4px rgba(0,0,0,0.5),
+        0 2px 6px rgba(0,0,0,0.4);
     }
 
     /* ---------- OVERLAY ---------- */
@@ -240,6 +318,15 @@
     #overlayTitle {
       margin-bottom: 12px;
       font-size: 24px;
+    }
+
+    #overlayContent {
+      width: min(90vw, 360px);
+      white-space: pre-line;
+      text-align: left;
+      margin-bottom: 14px;
+      line-height: 1.45;
+      color: rgba(255,255,255,0.9);
     }
 
     #overlayButtons {
@@ -264,16 +351,20 @@
     <div id="menuWrapper">
       <img id="menuArt" src="./menu_collapsed.png" alt="Trilux menu">
 
-      <button id="hitPitch" class="menu-hitbox" onclick="togglePitchMenu()" aria-label="Pitch"></button>
+      <button id="hitPitchCollapsed" class="menu-hitbox pitch-collapsed" onclick="togglePitchMenu()" aria-label="Pitch"></button>
+      <button id="hitPitchExpanded" class="menu-hitbox pitch-expanded" onclick="togglePitchMenu()" aria-label="Pitch"></button>
       <button id="hitStandard" class="menu-hitbox" onclick="startGame('recognition')" aria-label="Standard Blackjack"></button>
 
       <button id="hitEasy" class="menu-hitbox expanded-only" onclick="startGame('easy')" aria-label="Easy"></button>
       <button id="hitNormal" class="menu-hitbox expanded-only" onclick="startGame('normal')" aria-label="Normal"></button>
-      <button id="hitCasino" class="menu-hitbox expanded-only" onclick="startGame('casino')" aria-label="Casino"></button>
+      <button id="hitRealistic" class="menu-hitbox expanded-only" onclick="startGame('realistic')" aria-label="Realistic"></button>
       <button id="hitExtreme" class="menu-hitbox expanded-only" onclick="startGame('extreme')" aria-label="Extreme"></button>
     </div>
 
-    <button id="clearCacheBtn" onclick="clearAppCache()">Clear Cache</button>
+    <div id="homeControls">
+      <button id="clearCacheBtn" onclick="clearAppCache()">Clear Cache</button>
+      <button id="statsBtn" onclick="openStats()">Stats</button>
+    </div>
   </div>
 
   <!-- GAME -->
@@ -299,6 +390,7 @@
   <!-- OVERLAY -->
   <div id="overlay">
     <div id="overlayTitle"></div>
+    <div id="overlayContent"></div>
     <div id="overlayButtons"></div>
   </div>
 
@@ -320,6 +412,10 @@
     let score = 0;
     let rounds = 0;
     let decisionMade = false;
+    let isHiddenPhase = false;
+
+    let missedHands = {};
+    let slowHands = {};
 
     /* ---------- TIMERS ---------- */
     let viewTimerInterval = null;
@@ -339,6 +435,7 @@
     const buttonsEl = document.getElementById("buttons");
     const overlayEl = document.getElementById("overlay");
     const overlayTitleEl = document.getElementById("overlayTitle");
+    const overlayContentEl = document.getElementById("overlayContent");
     const overlayButtonsEl = document.getElementById("overlayButtons");
     const top1El = document.getElementById("top1");
     const top2El = document.getElementById("top2");
@@ -391,8 +488,11 @@
 
     function returnToMenu() {
       clearRoundTimers();
+      stopViewTimer();
       decisionMade = false;
+      isHiddenPhase = false;
       viewTimerEl.innerText = "";
+      viewTimerEl.classList.remove("hidden-phase");
       hideCards();
       showHome();
     }
@@ -414,6 +514,25 @@
       } catch (err) {
         console.error("Cache clear failed:", err);
       }
+    }
+
+    /* ---------- STATS ---------- */
+    function recordStat(bucket, hand) {
+      bucket[hand] = (bucket[hand] || 0) + 1;
+    }
+
+    function formatStats(obj) {
+      const entries = Object.entries(obj).sort((a, b) => b[1] - a[1]).slice(0, 5);
+      if (entries.length === 0) return "None";
+      return entries.map(([hand, count]) => `${hand}: ${count}`).join("\n");
+    }
+
+    function openStats() {
+      const content =
+        `Most Missed Hands\n${formatStats(missedHands)}\n\n` +
+        `Slow Hands\n${formatStats(slowHands)}`;
+
+      showOverlay("Stats", content, ["Close"], () => {});
     }
 
     /* ---------- CARD HELPERS ---------- */
@@ -519,7 +638,7 @@
       ) {
         return result;
       }
-      return null; // Pair excluded here
+      return null;
     }
 
     function getRecognitionOutcome(hand) {
@@ -553,14 +672,14 @@
 
     /* ---------- TIMING ---------- */
     function getDelay() {
-      return 1000 + Math.random() * 500; // 1.0–1.5s
+      return 1500 + Math.random() * 500; // 1.5–2.0s
     }
 
     function getViewTime() {
       if (mode === "easy") return 0;
-      if (mode === "normal") return 3000 + Math.random() * 1500;   // 3.0–4.5s
-      if (mode === "casino") return 1800 + Math.random() * 1200;   // 1.8–3.0s
-      if (mode === "extreme") return 1000 + Math.random() * 1100;  // 1.0–2.1s
+      if (mode === "normal") return 3000 + Math.random() * 1500;    // 3.0–4.5s
+      if (mode === "realistic") return 1800 + Math.random() * 700;  // 1.8–2.5s
+      if (mode === "extreme") return 800 + Math.random() * 700;     // 0.8–1.5s
       if (mode === "recognition") return 0;
       return 2000;
     }
@@ -625,6 +744,7 @@
     function startGame(selectedMode) {
       mode = selectedMode;
       decisionMade = false;
+      isHiddenPhase = false;
       showGame();
       buildButtons();
       updateScore();
@@ -635,7 +755,9 @@
       clearRoundTimers();
       setState("RUNNING");
       decisionMade = false;
+      isHiddenPhase = false;
       viewTimerEl.innerText = "";
+      viewTimerEl.classList.remove("hidden-phase");
 
       if (mode === "recognition") {
         const recognition = generateRecognitionHand();
@@ -673,6 +795,8 @@
       top2El.className = "card face";
       top1El.innerText = cards[1];
       top2El.innerText = cards[2];
+      isHiddenPhase = false;
+      viewTimerEl.classList.remove("hidden-phase");
     }
 
     function hideCards() {
@@ -680,11 +804,22 @@
       top2El.className = "card back";
       top1El.innerText = "";
       top2El.innerText = "";
+      isHiddenPhase = true;
+      viewTimerEl.classList.add("hidden-phase");
     }
 
-    function finalizeRound(isCorrect) {
+    function finalizeRound(isCorrect, resultLabel) {
       rounds++;
-      if (isCorrect) score++;
+
+      if (isCorrect) {
+        score++;
+        if (isHiddenPhase) {
+          recordStat(slowHands, resultLabel);
+        }
+      } else {
+        recordStat(missedHands, resultLabel);
+      }
+
       updateScore();
 
       setState("SHOWING_RESULT");
@@ -694,6 +829,7 @@
 
       roundResetTimeout = setTimeout(() => {
         viewTimerEl.innerText = "";
+        viewTimerEl.classList.remove("hidden-phase");
         newRound();
       }, 1000);
     }
@@ -704,13 +840,14 @@
       if (gameState !== "WAITING_INPUT" || decisionMade) return;
 
       const correct = evaluateTrilux(cards);
-      finalizeRound(answer === correct);
+      finalizeRound(answer === correct, correct);
     }
 
     /* ---------- OVERLAY ---------- */
-    function showOverlay(title, options, callback) {
+    function showOverlay(title, content, options, callback) {
       setState("OVERLAY");
       overlayTitleEl.innerText = title;
+      overlayContentEl.textContent = content || "";
       overlayButtonsEl.innerHTML = "";
 
       options.forEach(option => {
@@ -731,13 +868,13 @@
       if (mode !== "recognition") return;
       if (gameState !== "WAITING_INPUT" || decisionMade) return;
 
-      showOverlay("Select Category", [
+      showOverlay("Select Category", "", [
         "Match The Dealer",
         "Trilux",
         "No Bonus"
       ], (choice) => {
         if (choice === "Match The Dealer") {
-          showOverlay("Select Match Type", [
+          showOverlay("Select Match Type", "", [
             "1 non suited match",
             "2 non suited matches",
             "1 suited match",
@@ -747,7 +884,7 @@
             resolveRecognition(choice, detailChoice);
           });
         } else if (choice === "Trilux") {
-          showOverlay("Select Trilux Type", [
+          showOverlay("Select Trilux Type", "", [
             "Straight Flush",
             "Three of a Kind",
             "Flush",
@@ -770,7 +907,13 @@
         outcome.category === "Trilux";
       const isCorrectDetail = !requiresDetail || detailChoice === outcome.detail;
 
-      finalizeRound(isCorrectCategory && isCorrectDetail);
+      const resultLabel = outcome.category === "Trilux"
+        ? outcome.detail
+        : outcome.category === "Match The Dealer"
+          ? outcome.detail
+          : "No Bonus";
+
+      finalizeRound(isCorrectCategory && isCorrectDetail, resultLabel);
     }
 
     /* ---------- INIT ---------- */
