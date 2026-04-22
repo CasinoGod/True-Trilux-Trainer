@@ -1003,39 +1003,46 @@ top2El.innerText = "";
       if (gameState !== "WAITING_INPUT" || decisionMade) return;
 
       showOverlay(
-        "Select Category",
-        "",
-        ["Match The Dealer", "Trilux", "No Bonus"],
-        (choice) => {
-          if (choice === "Match The Dealer") {
-            showOverlay(
-              "Select Match Type",
-              "",
-              [
-                "1 non suited match",
-                "2 non suited matches",
-                "1 suited match",
-                "1 non suited + 1 suited match",
-                "2 suited matches"
-              ],
-              (detailChoice) => {
-                resolveRecognition(choice, detailChoice);
-              }
-            );
+  "Select Match Type",
+  "",
+  [
+    "1 non suited match",
+    "2 non suited matches",
+    "1 suited match",
+    "1 non suited + 1 suited match",
+    "2 suited matches"
+  ],
+  (detailChoice) => {
+    resolveRecognition(choice, detailChoice);
+  },
+  {
+    "1 non suited match": "overlay-yellow",
+    "2 non suited matches": "overlay-yellow",
+    "1 suited match": "overlay-yellow",
+    "1 non suited + 1 suited match": "overlay-yellow",
+    "2 suited matches": "overlay-yellow"
+  }
+);
           } else if (choice === "Trilux") {
-            showOverlay(
-              "Select Trilux Type",
-              "",
-              [
-                "Straight Flush",
-                "Three of a Kind",
-                "Flush",
-                "Straight"
-              ],
-              (detailChoice) => {
-                resolveRecognition(choice, detailChoice);
-              }
-            );
+showOverlay(
+  "Select Trilux Type",
+  "",
+  [
+    "Straight Flush",
+    "Three of a Kind",
+    "Flush",
+    "Straight"
+  ],
+  (detailChoice) => {
+    resolveRecognition(choice, detailChoice);
+  },
+  {
+    "Straight Flush": "overlay-purple",
+    "Three of a Kind": "overlay-purple",
+    "Flush": "overlay-purple",
+    "Straight": "overlay-purple"
+  }
+);
           } else {
             resolveRecognition(choice, "");
           }
