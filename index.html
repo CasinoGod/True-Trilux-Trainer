@@ -973,8 +973,13 @@ ${formatStats(stats.standardBlackjack.slow)}`;
 
       setState("SHOWING_RESULT");
       decisionMade = true;
-      stopViewTimer();
-      hideCards();
+     stopViewTimer();
+
+// flip cards visually only (no red timer trigger)
+top1El.className = "card back";
+top2El.className = "card back";
+top1El.innerText = "";
+top2El.innerText = "";
 
       roundResetTimeout = setTimeout(() => {
         viewTimerEl.innerText = "";
