@@ -27,7 +27,7 @@
       display: block;
     }
 
-    /* ---------- HOME IMAGE MENU ---------- */
+    /* ---------- HOME ---------- */
     #home {
       min-height: 100vh;
       display: none;
@@ -35,6 +35,7 @@
       align-items: flex-start;
       padding: 12px 0 24px;
       box-sizing: border-box;
+      position: relative;
     }
 
     #home.active {
@@ -54,6 +55,8 @@
       object-fit: contain;
       user-select: none;
       -webkit-user-drag: none;
+      transition: opacity 0.22s ease;
+      opacity: 1;
     }
 
     .menu-hitbox {
@@ -65,20 +68,22 @@
       cursor: pointer;
     }
 
+    /* top split buttons */
     #hitPitch {
-      left: 9%;
-      top: 58%;
-      width: 38%;
-      height: 19%;
+      left: 10.5%;
+      top: 58.8%;
+      width: 35.5%;
+      height: 10.5%;
     }
 
     #hitStandard {
-      right: 9%;
-      top: 58%;
-      width: 38%;
-      height: 19%;
+      right: 10.5%;
+      top: 58.8%;
+      width: 35.5%;
+      height: 10.5%;
     }
 
+    /* expanded-only difficulty buttons */
     .expanded-only {
       display: none;
     }
@@ -88,38 +93,69 @@
     }
 
     #hitEasy {
-      left: 19%;
-      top: 76%;
-      width: 62%;
-      height: 7.2%;
+      left: 20%;
+      top: 76.3%;
+      width: 60%;
+      height: 5.8%;
     }
 
     #hitNormal {
-      left: 19%;
-      top: 84%;
-      width: 62%;
-      height: 7.2%;
+      left: 20%;
+      top: 82.9%;
+      width: 60%;
+      height: 5.8%;
     }
 
     #hitCasino {
-      left: 19%;
-      top: 92%;
-      width: 62%;
-      height: 7.2%;
+      left: 20%;
+      top: 89.5%;
+      width: 60%;
+      height: 5.8%;
     }
 
     #hitExtreme {
-      left: 19%;
-      top: 99.3%;
-      width: 62%;
-      height: 7.2%;
-      transform: translateY(-8%);
+      left: 20%;
+      top: 96.1%;
+      width: 60%;
+      height: 5.8%;
+    }
+
+    #clearCacheBtn {
+      position: fixed;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 11px;
+      padding: 4px 8px;
+      border: none;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.12);
+      color: rgba(255,255,255,0.72);
+      z-index: 40;
+      backdrop-filter: blur(2px);
+      -webkit-backdrop-filter: blur(2px);
     }
 
     /* ---------- GAME ---------- */
     #game {
       min-height: 100vh;
       box-sizing: border-box;
+    }
+
+    #backButton {
+      position: fixed;
+      top: 14px;
+      left: 14px;
+      z-index: 50;
+      font-size: 16px;
+      padding: 8px 12px;
+      border: none;
+      border-radius: 10px;
+      background: rgba(0,0,0,0.45);
+      color: white;
+      backdrop-filter: blur(2px);
+      -webkit-backdrop-filter: blur(2px);
+      box-shadow: 0 4px 10px rgba(0,0,0,0.25);
     }
 
     #score {
@@ -236,10 +272,14 @@
       <button id="hitCasino" class="menu-hitbox expanded-only" onclick="startGame('casino')" aria-label="Casino"></button>
       <button id="hitExtreme" class="menu-hitbox expanded-only" onclick="startGame('extreme')" aria-label="Extreme"></button>
     </div>
+
+    <button id="clearCacheBtn" onclick="clearAppCache()">Clear Cache</button>
   </div>
 
   <!-- GAME -->
   <div id="game" class="screen">
+    <button id="backButton" onclick="returnToMenu()">← Back</button>
+
     <div id="score">Score: 0 / 0</div>
 
     <div class="top-row">
@@ -263,10 +303,16 @@
   </div>
 
   <script>
+    /* ---------- FILES ---------- */
+    const MENU_COLLAPSED = "./menu_collapsed.png";
+    const MENU_EXPANDED = "./menu_expanded.png";
+
+    /* ---------- STATE ---------- */
     let gameState = "HOME";
     let mode = "";
     let pitchExpanded = false;
 
+    /* ---------- GAME DATA ---------- */
     const ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
     const suits = ['♠', '♥', '♦', '♣'];
 
@@ -275,12 +321,15 @@
     let rounds = 0;
     let decisionMade = false;
 
+    /* ---------- TIMERS ---------- */
     let viewTimerInterval = null;
     let viewStartTime = 0;
     let revealTimeout = null;
     let hideTimeout = null;
     let roundResetTimeout = null;
+    let menuFadeTimeout = null;
 
+    /* ---------- DOM ---------- */
     const homeEl = document.getElementById("home");
     const gameEl = document.getElementById("game");
     const menuWrapperEl = document.getElementById("menuWrapper");
@@ -295,18 +344,26 @@
     const top2El = document.getElementById("top2");
     const bottomCardEl = document.getElementById("bottomCard");
 
+    /* ---------- STATE CONTROL ---------- */
     function setState(nextState) {
       gameState = nextState;
     }
 
+    /* ---------- HOME MENU ---------- */
     function setMenuArt() {
-      if (pitchExpanded) {
-        menuWrapperEl.classList.add("expanded");
-        menuArtEl.src = "./menu_expanded.png";
-      } else {
-        menuWrapperEl.classList.remove("expanded");
-        menuArtEl.src = "./menu_collapsed.png";
-      }
+      clearTimeout(menuFadeTimeout);
+      menuArtEl.style.opacity = "0";
+
+      menuFadeTimeout = setTimeout(() => {
+        if (pitchExpanded) {
+          menuWrapperEl.classList.add("expanded");
+          menuArtEl.src = MENU_EXPANDED;
+        } else {
+          menuWrapperEl.classList.remove("expanded");
+          menuArtEl.src = MENU_COLLAPSED;
+        }
+        menuArtEl.style.opacity = "1";
+      }, 180);
     }
 
     function togglePitchMenu() {
@@ -318,10 +375,13 @@
     function showHome() {
       clearRoundTimers();
       setState("HOME");
+      overlayEl.style.display = "none";
       gameEl.classList.remove("active");
       homeEl.classList.add("active");
       pitchExpanded = false;
-      setMenuArt();
+      menuWrapperEl.classList.remove("expanded");
+      menuArtEl.src = MENU_COLLAPSED;
+      menuArtEl.style.opacity = "1";
     }
 
     function showGame() {
@@ -329,6 +389,34 @@
       gameEl.classList.add("active");
     }
 
+    function returnToMenu() {
+      clearRoundTimers();
+      decisionMade = false;
+      viewTimerEl.innerText = "";
+      hideCards();
+      showHome();
+    }
+
+    /* ---------- CACHE ---------- */
+    async function clearAppCache() {
+      try {
+        if ("caches" in window) {
+          const keys = await caches.keys();
+          await Promise.all(keys.map(key => caches.delete(key)));
+        }
+
+        if ("serviceWorker" in navigator) {
+          const regs = await navigator.serviceWorker.getRegistrations();
+          await Promise.all(regs.map(reg => reg.unregister()));
+        }
+
+        location.reload();
+      } catch (err) {
+        console.error("Cache clear failed:", err);
+      }
+    }
+
+    /* ---------- CARD HELPERS ---------- */
     function createDeck() {
       const deck = [];
       for (const rank of ranks) {
@@ -360,6 +448,7 @@
       return ranks.indexOf(rank) + 2;
     }
 
+    /* ---------- TRILUX EVALUATION ---------- */
     function evaluateTrilux(hand) {
       const vals = hand.map(c => value(rankText(c))).sort((a, b) => a - b);
       const suitsOnly = hand.map(c => suitText(c));
@@ -403,6 +492,7 @@
       }
     }
 
+    /* ---------- STANDARD BLACKJACK EVALUATION ---------- */
     function matchDealerTypeForHand(hand) {
       const dealerCard = hand[0];
       const playerCards = [hand[1], hand[2]];
@@ -429,7 +519,7 @@
       ) {
         return result;
       }
-      return null;
+      return null; // Pair excluded here
     }
 
     function getRecognitionOutcome(hand) {
@@ -461,22 +551,21 @@
       }
     }
 
+    /* ---------- TIMING ---------- */
     function getDelay() {
-      return 1000 + Math.random() * 500;
+      return 1000 + Math.random() * 500; // 1.0–1.5s
     }
 
     function getViewTime() {
-      const base = 1500 + Math.random() * 2500;
-
       if (mode === "easy") return 0;
-      if (mode === "normal") return 3000 + Math.random() * 3000;
-      if (mode === "casino") return base * 1.4;
-      if (mode === "extreme") return 1000 + Math.random() * 1100;
+      if (mode === "normal") return 3000 + Math.random() * 1500;   // 3.0–4.5s
+      if (mode === "casino") return 1800 + Math.random() * 1200;   // 1.8–3.0s
+      if (mode === "extreme") return 1000 + Math.random() * 1100;  // 1.0–2.1s
       if (mode === "recognition") return 0;
-
-      return base;
+      return 2000;
     }
 
+    /* ---------- TIMER ---------- */
     function startViewTimer() {
       stopViewTimer();
       viewStartTime = Date.now();
@@ -495,6 +584,7 @@
       }
     }
 
+    /* ---------- UI ---------- */
     function updateScore() {
       scoreEl.innerText = `Score: ${score} / ${rounds}`;
     }
@@ -514,6 +604,7 @@
       `;
     }
 
+    /* ---------- ROUND CLEANUP ---------- */
     function clearRoundTimers() {
       if (revealTimeout) {
         clearTimeout(revealTimeout);
@@ -530,6 +621,7 @@
       stopViewTimer();
     }
 
+    /* ---------- GAME FLOW ---------- */
     function startGame(selectedMode) {
       mode = selectedMode;
       decisionMade = false;
@@ -575,6 +667,7 @@
       }, getDelay());
     }
 
+    /* ---------- CARD DISPLAY ---------- */
     function revealCards() {
       top1El.className = "card face";
       top2El.className = "card face";
@@ -605,6 +698,7 @@
       }, 1000);
     }
 
+    /* ---------- STANDARD MODES ---------- */
     function guessStandard(answer) {
       if (mode === "recognition") return;
       if (gameState !== "WAITING_INPUT" || decisionMade) return;
@@ -613,6 +707,7 @@
       finalizeRound(answer === correct);
     }
 
+    /* ---------- OVERLAY ---------- */
     function showOverlay(title, options, callback) {
       setState("OVERLAY");
       overlayTitleEl.innerText = title;
@@ -631,6 +726,7 @@
       overlayEl.style.display = "flex";
     }
 
+    /* ---------- STANDARD BLACKJACK ---------- */
     function startRecognition() {
       if (mode !== "recognition") return;
       if (gameState !== "WAITING_INPUT" || decisionMade) return;
@@ -677,6 +773,7 @@
       finalizeRound(isCorrectCategory && isCorrectDetail);
     }
 
+    /* ---------- INIT ---------- */
     window.onload = () => {
       showHome();
       updateScore();
