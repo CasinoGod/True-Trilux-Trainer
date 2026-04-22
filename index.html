@@ -4,11 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Trilux Trainer</title>
-  
-<link rel="apple-touch-icon" href="icon.png">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Trilux">
-  
+
   <style>
     :root {
       --felt-dark: #043b18;
@@ -137,7 +133,6 @@
       display: block;
     }
 
-    /* Collapsed Pitch */
     #hitPitchCollapsed {
       left: 9.5%;
       top: 57.8%;
@@ -145,7 +140,6 @@
       height: 12.5%;
     }
 
-    /* Expanded Pitch */
     #hitPitchExpanded {
       left: 9.5%;
       top: 57.8%;
@@ -153,7 +147,6 @@
       height: 12.5%;
     }
 
-    /* Standard Blackjack */
     #hitStandard {
       right: 9.5%;
       top: 57.8%;
@@ -455,7 +448,6 @@
 </head>
 <body>
 
-  <!-- HOME -->
   <div id="home" class="screen active">
     <div id="menuWrapper">
       <img id="menuArt" src="./menu_collapsed.png" alt="Trilux menu" />
@@ -476,7 +468,6 @@
     </div>
   </div>
 
-  <!-- GAME -->
   <div id="game" class="screen">
     <button id="backButton" onclick="returnToMenu()">← Back</button>
 
@@ -496,7 +487,6 @@
     <div id="buttons" class="buttons"></div>
   </div>
 
-  <!-- OVERLAY -->
   <div id="overlay">
     <div id="overlayTitle"></div>
     <div id="overlayContent"></div>
@@ -514,8 +504,6 @@
     const ranks = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"];
     const suits = ["♠", "♥", "♦", "♣"];
 
-    // standard modes use [bottom, top1, top2]
-    // standard blackjack uses [dealer, player1, player2]
     let cards = [];
     let score = 0;
     let rounds = 0;
@@ -790,14 +778,14 @@ ${formatStats(stats.standardBlackjack.slow)}`;
     }
 
     function getDelay() {
-      return 1500 + Math.random() * 500; // 1.5–2.0s
+      return 1500 + Math.random() * 500;
     }
 
     function getViewTime() {
       if (mode === "easy") return 0;
-      if (mode === "normal") return 3000 + Math.random() * 1500;    // 3.0–4.5s
-      if (mode === "realistic") return 1800 + Math.random() * 700;  // 1.8–2.5s
-      if (mode === "extreme") return 800 + Math.random() * 700;     // 0.8–1.5s
+      if (mode === "normal") return 3000 + Math.random() * 1500;
+      if (mode === "realistic") return 800 + Math.random() * 700;
+      if (mode === "extreme") return 200 + Math.random() * 400;
       if (mode === "recognition") return 0;
       return 2000;
     }
@@ -918,7 +906,15 @@ ${formatStats(stats.standardBlackjack.slow)}`;
         setState("WAITING_INPUT");
 
         const viewTime = getViewTime();
-        if (viewTime > 0) {
+
+        if (mode === "recognition") {
+          hideTimeout = setTimeout(() => {
+            if (gameState === "WAITING_INPUT") {
+              isHiddenPhase = true;
+              viewTimerEl.classList.add("hidden-phase");
+            }
+          }, 5000);
+        } else if (viewTime > 0) {
           hideTimeout = setTimeout(() => {
             if (gameState === "WAITING_INPUT") {
               hideCards(true);
@@ -962,12 +958,10 @@ ${formatStats(stats.standardBlackjack.slow)}`;
       }
 
       updateScore();
-
       setState("SHOWING_RESULT");
       decisionMade = true;
       stopViewTimer();
 
-      /* Visual hide only — do NOT turn timer red here */
       hideCards(false);
 
       roundResetTimeout = setTimeout(() => {
