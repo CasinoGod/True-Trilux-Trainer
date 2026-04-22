@@ -13,8 +13,16 @@ body {
   text-align: center;
 }
 
-h2 { margin-top: 10px; }
+/* ---------- SCREEN SYSTEM ---------- */
+.screen {
+  display: none;
+}
 
+.active {
+  display: block;
+}
+
+/* ---------- CARDS ---------- */
 .card {
   width: 70px;
   height: 100px;
@@ -26,20 +34,25 @@ h2 { margin-top: 10px; }
   margin: 5px;
 }
 
-/* 🎴 Checkered card back */
+.face {
+  background: white;
+  color: black;
+}
+
+/* Reliable mobile-safe checkered back */
 .back {
-  background:
-    linear-gradient(45deg, red 25%, white 25%, white 50%, red 50%, red 75%, white 75%, white);
-  background-size: 20px 20px;
+  background: repeating-linear-gradient(
+    45deg,
+    red,
+    red 10px,
+    white 10px,
+    white 20px
+  );
   color: transparent;
 }
 
-.face { background: white; color: black; }
-
-.screen { display:none; }
-.active { display:block; }
-
-.top-row { margin-top: 30px; }
+/* ---------- LAYOUT ---------- */
+.top-row { margin-top: 25px; }
 
 .bottom {
   position: fixed;
@@ -61,13 +74,12 @@ button {
   border: none;
 }
 
-#timer { margin-top: 10px; }
-
-/* 🔥 Overlay */
 #overlay {
   position: fixed;
-  top:0; left:0;
-  width:100%; height:100%;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
   background: rgba(0,0,0,0.85);
   display:none;
   align-items:center;
@@ -87,7 +99,7 @@ button {
 
 <body>
 
-<!-- HOME -->
+<!-- HOME SCREEN -->
 <div id="home" class="screen active">
   <h2>Trilux Trainer</h2>
   <p>Select Mode</p>
@@ -99,12 +111,11 @@ button {
   <button onclick="startGame('recognition')">Recognition</button>
 </div>
 
-<!-- GAME -->
+<!-- GAME SCREEN -->
 <div id="game" class="screen">
 
 <h2>Trilux Trainer</h2>
 <div id="score">Score: 0 / 0</div>
-<div id="timer"></div>
 
 <div class="top-row">
   <div id="top1" class="card back"></div>
@@ -121,7 +132,7 @@ button {
 
 <!-- OVERLAY -->
 <div id="overlay">
-  <h3 id="overlayTitle">Select</h3>
+  <h3 id="overlayTitle"></h3>
   <div id="overlayButtons"></div>
 </div>
 
@@ -136,7 +147,7 @@ let rounds = 0;
 let mode = "";
 let accepting = false;
 
-/* ---------------- CARDS ---------------- */
+/* ---------- UTIL ---------- */
 function randomCard() {
   return ranks[Math.floor(Math.random()*ranks.length)] +
          suits[Math.floor(Math.random()*suits.length)];
@@ -146,7 +157,7 @@ function value(r) {
   return ranks.indexOf(r) + 2;
 }
 
-/* ---------------- TRILUX ENGINE ---------------- */
+/* ---------- TRILUX ENGINE ---------- */
 function evaluateTrilux(c) {
   let vals = c.map(x => value(x.slice(0,-1))).sort((a,b)=>a-b);
   let suitsOnly = c.map(x => x.slice(-1));
@@ -170,7 +181,7 @@ function evaluateTrilux(c) {
   return "No Bonus";
 }
 
-/* ---------------- DEALER MATCH ---------------- */
+/* ---------- DEALER MATCH ---------- */
 function matchDealerType() {
   let matches = cards.filter(c => c[0] === dealer[0]);
   let suited = cards.filter(c => c === dealer);
@@ -183,7 +194,7 @@ function matchDealerType() {
   return "No Match";
 }
 
-/* ---------------- GAME START ---------------- */
+/* ---------- GAME START ---------- */
 function startGame(m) {
   mode = m;
 
@@ -194,14 +205,14 @@ function startGame(m) {
   newRound();
 }
 
-/* ---------------- BUTTONS ---------------- */
+/* ---------- BUTTONS ---------- */
 function buildButtons() {
   let html = "";
 
   if (mode === "recognition") {
-    html += `<button onclick="startRecognitionFlow()">Make Decision</button>`;
+    html = `<button onclick="startRecognition()">Make Decision</button>`;
   } else {
-    html += `
+    html = `
       <button onclick="guess('Straight Flush')">Str Flush</button>
       <button onclick="guess('Three of a Kind')">3 Kind</button>
       <button onclick="guess('Flush')">Flush</button>
@@ -212,7 +223,7 @@ function buildButtons() {
   document.getElementById("buttons").innerHTML = html;
 }
 
-/* ---------------- ROUND ---------------- */
+/* ---------- ROUND ---------- */
 function newRound() {
   accepting = false;
 
@@ -226,7 +237,7 @@ function newRound() {
   accepting = true;
 }
 
-/* ---------------- NORMAL MODE ---------------- */
+/* ---------- NORMAL MODE ---------- */
 function guess(g) {
   if (!accepting) return;
 
@@ -243,7 +254,7 @@ function guess(g) {
   setTimeout(newRound, 800);
 }
 
-/* ---------------- OVERLAY SYSTEM ---------------- */
+/* ---------- OVERLAY SYSTEM ---------- */
 function showOverlay(title, options, cb) {
   document.getElementById("overlay").style.display = "flex";
   document.getElementById("overlayTitle").innerText = title;
@@ -262,8 +273,8 @@ function selectOverlay(val) {
   if (window.overlayCallback) window.overlayCallback(val);
 }
 
-/* ---------------- RECOGNITION MODE ---------------- */
-function startRecognitionFlow() {
+/* ---------- RECOGNITION ---------- */
+function startRecognition() {
   showOverlay("Select Category", [
     "Match The Dealer",
     "Trilux",
@@ -271,7 +282,6 @@ function startRecognitionFlow() {
   ], function(choice) {
 
     if (choice === "Match The Dealer") {
-
       showOverlay("Match Type", [
         "1 non suited match",
         "2 non suited matches",
@@ -291,7 +301,7 @@ function startRecognitionFlow() {
   });
 }
 
-/* ---------------- SCORING ---------------- */
+/* ---------- SCORING ---------- */
 function resolveRecognition(type, sub="") {
   accepting = false;
 
